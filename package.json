@@ -1,0 +1,25 @@
+{
+  "name": "collect-instances",
+  "version": "1.0.0",
+  "description": "Your Figma Plugin",
+  "main": "code.js",
+  "scripts": {
+    "dev": "run-p vite:watch",
+    "build": "run-s vite:build lint:dist",
+    "vite:watch": "vite build --watch",
+    "vite:build": "vite build",
+    "lint:src": "eslint src/*.ts",
+    "lint:dist": "eslint --fix dist/code.js"
+  },
+  "author": "",
+  "license": "",
+  "devDependencies": {
+    "@figma/plugin-typings": "*",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "eslint": "^8.55.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "*",
+    "vite": "^5.0.9"
+  }
+}
