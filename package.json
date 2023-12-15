@@ -2,7 +2,6 @@
   "name": "collect-instances",
   "version": "1.0.0",
   "description": "Your Figma Plugin",
-  "main": "code.js",
   "scripts": {
     "dev": "run-p vite:watch",
     "build": "run-s vite:build lint:dist",
