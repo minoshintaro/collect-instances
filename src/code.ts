@@ -19,8 +19,8 @@ figma.on('run', ({ command }: RunEvent) => {
   });
 
   // インスタンスの複製
-  const componentFrames: FrameNode[] = [];
   const instanceMap = getInstanceMap();
+  const componentFrames: FrameNode[] = [];
 
   instanceMap.forEach((values, key) => {
     const componentFrame = createAutoLayoutFrame({
