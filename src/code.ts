@@ -1,21 +1,42 @@
-import { getAutoLayoutFrame } from "./features/getAutoLayoutFrame";
-import { getTargetPage } from "./features/getTargetPage";
-import { getInstances } from "./features/getInstances";
+import { createAutoLayoutFrame } from "./features/createAutoLayoutFrame";
+import { createPage } from "./features/createPage";
+import { getInstanceMap } from "./features/getInstanceMap";
 
 const PAGE_NAME = "Instances";
-const FRAME_NAME = "Collection";
+const FRAME_NAME = "Collections";
 
 figma.skipInvisibleInstanceChildren = true;
 
 figma.on('run', ({ command }: RunEvent) => {
-  const targetPage = getTargetPage(PAGE_NAME);
-  const targetFrame = getAutoLayoutFrame(FRAME_NAME, targetPage);
-  const instances = getInstances();
-  console.log('test', instances);
+  // 配置先の確保
+  const targetPage: PageNode = createPage(PAGE_NAME);
+  const targetFrame: FrameNode = createAutoLayoutFrame({
+    target: targetPage,
+    name: FRAME_NAME,
+    flow: 'HORIZONTAL',
+    gap: 200
+  });
 
-  instances.forEach(instance => {
-    const clone = instance.clone();
-    targetFrame.appendChild(clone);
+  // インスタンスのコピー
+  const componentFrames: FrameNode[] = [];
+  const instanceMap = getInstanceMap();
+
+  instanceMap.forEach((values, key) => {
+    const componentFrame = createAutoLayoutFrame({
+      target: targetPage,
+      name: key,
+      flow: 'VERTICAL',
+      gap: 100
+    });
+    values.forEach(instance => {
+      const clone = instance.clone();
+      componentFrame.appendChild(clone);
+    });
+    componentFrames.push(componentFrame);
+  });
+
+  componentFrames.forEach(frame => {
+    targetFrame.appendChild(frame);
   });
 
   figma.closePlugin('Done');
