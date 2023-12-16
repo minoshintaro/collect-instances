@@ -1,9 +1,7 @@
+import { PAGE_NAME, FRAME_NAME } from "./settings";
 import { createAutoLayoutFrame } from "./features/createAutoLayoutFrame";
 import { createPage } from "./features/createPage";
 import { getInstanceMap } from "./features/getInstanceMap";
-
-const PAGE_NAME = "Instances";
-const FRAME_NAME = "Collections";
 
 figma.skipInvisibleInstanceChildren = true;
 
