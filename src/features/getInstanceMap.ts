@@ -1,52 +1,44 @@
 import { getComponentName } from "./getComponentName";
 
 export function getInstanceMap() {
+  const result = new Map<string, InstanceNode[]>();
 
   // すべてのインスタンスを取得する
   const instances = figma.currentPage.findAllWithCriteria({
     types: ['INSTANCE']
   });
 
-  // 入れ子のインスタンスを除外する
-  const filteredInstances = instances.filter(instance => {
-    if (!instance.visible) return false;
-
-    let parent = instance.parent;
+  // 非表示・入れ子インスタンスなら偽
+  const isTarget = (node: InstanceNode): boolean => {
+    if (!node.visible) return false;
+    let parent = node.parent;
     while (parent) {
       if (parent.type === 'COMPONENT' || parent.type === 'INSTANCE') return false;
       parent = parent.parent;
     }
     return true;
-  });
+  }
 
-  // コンポーネント名ごとにインスタンスをまとめる
-  const instanceMap = new Map<string, InstanceNode[]>();
+  // コンポーネント名にインスタンスをぶら下げる
+  for (const instance of instances) {
+    if (!isTarget(instance)) continue;
 
-  filteredInstances.forEach(instance => {
+    // キーになるコンポーネント名
     const name = getComponentName(instance);
-
-    if (!instanceMap.has(name)) {
-      instanceMap.set(name, []);
+    if (!result.has(name)) {
+      result.set(name, []);
     }
 
-    const list = instanceMap.get(name);
-    if (list) {
-      list.push(instance);
-    }
-  });
+    // Mapにインスタンスをセットする
+    const list = result.get(name);
+    if (list) list.push(instance);
+  }
 
-  instanceMap.forEach(instances => {
+  // 並び替え
+  result.forEach(instances => {
     instances.sort((a, b) => b.width - a.width);
   });
 
-  // const sortedInstances = filteredInstances.sort((a, b) => {
-  //   const nameA = a.mainComponent ? a.mainComponent.name.toUpperCase() : "";
-  //   const nameB = b.mainComponent ? b.mainComponent.name.toUpperCase() : "";
-  //   return nameA.localeCompare(nameB);
-  // });
-  // console.log('test', instances, sortedInstances);
-
-  return instanceMap;
+  return result;
 }
-
 
