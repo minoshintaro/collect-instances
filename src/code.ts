@@ -5,6 +5,8 @@ import { getInstances } from "./features/getInstances";
 const PAGE_NAME = "Instances";
 const FRAME_NAME = "Collection";
 
+figma.skipInvisibleInstanceChildren = true;
+
 figma.on('run', ({ command }: RunEvent) => {
   const targetPage = getTargetPage(PAGE_NAME);
   const targetFrame = getAutoLayoutFrame(FRAME_NAME, targetPage);
