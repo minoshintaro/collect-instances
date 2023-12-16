@@ -1,7 +1,7 @@
 export default {
   build: {
     target: 'esnext',
-    minify: true,
+    minify: false,
     rollupOptions: {
       input: {
         main: './src/code.ts'

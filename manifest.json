@@ -1,16 +1,11 @@
 {
-  "name": "collect-instances",
+  "name": "Collect Instances",
   "id": "1317452153101657598",
   "api": "1.0.0",
-  "main": "code.js",
+  "main": "dist/code.js",
   "capabilities": [],
   "enableProposedApi": false,
   "editorType": [
     "figma"
-  ],
-  "networkAccess": {
-    "allowedDomains": [
-      "none"
-    ]
-  }
+  ]
 }
