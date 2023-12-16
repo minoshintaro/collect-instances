@@ -33,6 +33,7 @@ figma.on('run', ({ command }: RunEvent) => {
     });
     values.forEach(instance => {
       const clone = instance.clone();
+      clone.resize(instance.width, instance.height);
       componentFrame.appendChild(clone);
     });
     componentFrames.push(componentFrame);

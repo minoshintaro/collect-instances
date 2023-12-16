@@ -1,32 +1,18 @@
+import { isTargetInstance } from "./isTargetInstance";
 import { getComponentName } from "./getComponentName";
 
 export function setMap(nodes: InstanceNode[]) {
   const result = new Map<string, InstanceNode[]>();
 
-  // 非表示・入れ子インスタンスなら偽
-  const isTarget = (node: InstanceNode): boolean => {
-    if (!node.visible) return false;
-    let parent = node.parent;
-    while (parent) {
-      if (parent.type === 'COMPONENT' || parent.type === 'INSTANCE') return false;
-      parent = parent.parent;
-    }
-    return true;
-  }
-
-  // コンポーネント名にインスタンスをぶら下げる
+  // Mapオブジェクトにセット
   for (const node of nodes) {
-    if (!isTarget(node)) continue;
+    if (!isTargetInstance(node)) continue;
 
-    // キーになるコンポーネント名
-    const name = getComponentName(node);
-    if (!result.has(name)) {
-      result.set(name, []);
-    }
+    const key = getComponentName(node);
+    const values = result.get(key) || [];
 
-    // Mapにインスタンスをセットする
-    const list = result.get(name);
-    if (list) list.push(node);
+    values.push(node);
+    result.set(key, values);
   }
 
   // 並び替え
@@ -34,6 +20,7 @@ export function setMap(nodes: InstanceNode[]) {
     instances.sort((a, b) => b.width - a.width);
   });
 
+  console.log('test',result);
   return result;
 }
 
