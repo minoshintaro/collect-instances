@@ -7,7 +7,9 @@ interface CreateAutoLayoutFrame {
 
 export function createAutoLayoutFrame(options: CreateAutoLayoutFrame): FrameNode {
   const { target, name, flow, gap } = options;
-  const foundFrame = target.children.find(child => child.type === 'FRAME' && child.name === name) as FrameNode;
+
+  // 既存フレーム
+  const foundFrame = target.children.find(child => child.name === name && child.type === 'FRAME') as FrameNode;
   if (foundFrame) {
     while (foundFrame.children.length > 0) {
       foundFrame.children[0].remove();
@@ -15,7 +17,7 @@ export function createAutoLayoutFrame(options: CreateAutoLayoutFrame): FrameNode
     return foundFrame;
   }
 
-  // 新しいフレームを作成し、自動レイアウトを設定
+  // 新規フレーム
   const newFrame = figma.createFrame();
   newFrame.name = name;
   newFrame.layoutMode = flow;

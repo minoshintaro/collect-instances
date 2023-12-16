@@ -1,12 +1,7 @@
 import { getComponentName } from "./getComponentName";
 
-export function getInstanceMap() {
+export function setMap(nodes: InstanceNode[]) {
   const result = new Map<string, InstanceNode[]>();
-
-  // すべてのインスタンスを取得する
-  const instances = figma.currentPage.findAllWithCriteria({
-    types: ['INSTANCE']
-  });
 
   // 非表示・入れ子インスタンスなら偽
   const isTarget = (node: InstanceNode): boolean => {
@@ -20,18 +15,18 @@ export function getInstanceMap() {
   }
 
   // コンポーネント名にインスタンスをぶら下げる
-  for (const instance of instances) {
-    if (!isTarget(instance)) continue;
+  for (const node of nodes) {
+    if (!isTarget(node)) continue;
 
     // キーになるコンポーネント名
-    const name = getComponentName(instance);
+    const name = getComponentName(node);
     if (!result.has(name)) {
       result.set(name, []);
     }
 
     // Mapにインスタンスをセットする
     const list = result.get(name);
-    if (list) list.push(instance);
+    if (list) list.push(node);
   }
 
   // 並び替え

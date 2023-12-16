@@ -1,13 +1,12 @@
 import { PAGE_NAME, FRAME_NAME } from "./settings";
 import { createAutoLayoutFrame } from "./features/createAutoLayoutFrame";
 import { createPage } from "./features/createPage";
-import { getInstanceMap } from "./features/getInstanceMap";
+import { setMap } from "./features/setMap";
 
 figma.skipInvisibleInstanceChildren = true;
 
 figma.on('run', ({ command }: RunEvent) => {
-
-  // 配置先の確保
+  // 配置先
   const targetPage: PageNode = createPage(PAGE_NAME);
   if (figma.currentPage === targetPage) figma.closePlugin('Not Here');
 
@@ -18,8 +17,11 @@ figma.on('run', ({ command }: RunEvent) => {
     gap: 200
   });
 
-  // インスタンスの複製
-  const instanceMap = getInstanceMap();
+  // インスタンス
+  const instances = figma.currentPage.findAllWithCriteria({
+    types: ['INSTANCE']
+  });
+  const instanceMap = setMap(instances);
   const componentFrames: FrameNode[] = [];
 
   instanceMap.forEach((values, key) => {
@@ -40,7 +42,9 @@ figma.on('run', ({ command }: RunEvent) => {
     targetFrame.appendChild(frame);
   });
 
+  // 当該ページを表示
   figma.currentPage = targetPage;
+
   figma.closePlugin('Done');
 });
 
