@@ -20,7 +20,8 @@ export function getInstanceMap() {
   });
 
   // コンポーネント名ごとにインスタンスをまとめる
-  const instanceMap = new Map<string, InstanceNode[]>()
+  const instanceMap = new Map<string, InstanceNode[]>();
+
   filteredInstances.forEach(instance => {
     const name = getComponentName(instance);
 
@@ -32,6 +33,10 @@ export function getInstanceMap() {
     if (list) {
       list.push(instance);
     }
+  });
+
+  instanceMap.forEach(instances => {
+    instances.sort((a, b) => b.width - a.width);
   });
 
   // const sortedInstances = filteredInstances.sort((a, b) => {

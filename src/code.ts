@@ -8,8 +8,11 @@ const FRAME_NAME = "Collections";
 figma.skipInvisibleInstanceChildren = true;
 
 figma.on('run', ({ command }: RunEvent) => {
+
   // 配置先の確保
   const targetPage: PageNode = createPage(PAGE_NAME);
+  if (figma.currentPage === targetPage) figma.closePlugin('Not Here');
+
   const targetFrame: FrameNode = createAutoLayoutFrame({
     target: targetPage,
     name: FRAME_NAME,
@@ -17,7 +20,7 @@ figma.on('run', ({ command }: RunEvent) => {
     gap: 200
   });
 
-  // インスタンスのコピー
+  // インスタンスの複製
   const componentFrames: FrameNode[] = [];
   const instanceMap = getInstanceMap();
 
@@ -26,7 +29,7 @@ figma.on('run', ({ command }: RunEvent) => {
       target: targetPage,
       name: key,
       flow: 'VERTICAL',
-      gap: 100
+      gap: 20
     });
     values.forEach(instance => {
       const clone = instance.clone();
@@ -39,6 +42,7 @@ figma.on('run', ({ command }: RunEvent) => {
     targetFrame.appendChild(frame);
   });
 
+  figma.currentPage = targetPage;
   figma.closePlugin('Done');
 });
 
