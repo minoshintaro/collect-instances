@@ -3,18 +3,19 @@ import { createAutoLayoutFrame } from "./features/createAutoLayoutFrame";
 import { createPage } from "./features/createPage";
 import { setMap } from "./features/setMap";
 
+if (figma.currentPage.name === PAGE_NAME) figma.closePlugin('Not Here');
+
 figma.skipInvisibleInstanceChildren = true;
 
 figma.on('run', ({ command }: RunEvent) => {
   // 配置先
   const targetPage: PageNode = createPage(PAGE_NAME);
-  if (figma.currentPage === targetPage) figma.closePlugin('Not Here');
-
   const targetFrame: FrameNode = createAutoLayoutFrame({
     target: targetPage,
     name: FRAME_NAME,
     flow: 'HORIZONTAL',
-    gap: 200
+    gap: 200,
+    init: true
   });
 
   // インスタンス
