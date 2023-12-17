@@ -1,15 +1,18 @@
-import { PAGE_NAME, FRAME_NAME } from "./settings";
+import { PAGE_NAME, FRAME_NAME, FONT_NAME } from "./settings";
 import { createAutoLayoutFrame } from "./features/createAutoLayoutFrame";
+import { createClone } from "./features/createClone";
+import { createComponentMap } from "./features/createComponentMap";
+import { createLinkText } from "./features/createLinkText";
 import { createPage } from "./features/createPage";
-import { setComponentMap } from "./features/setComponentMap";
-import { setHyperlink } from "./features/setHyperLink";
 
 if (figma.currentPage.name === PAGE_NAME) figma.closePlugin('Not Here');
 
 figma.skipInvisibleInstanceChildren = true;
 
 figma.on('run', async ({ command }: RunEvent) => {
-  // 配置先
+  await figma.loadFontAsync(FONT_NAME);
+
+  // [1] 配置先の生成
   const targetPage: PageNode = createPage(PAGE_NAME);
   const targetFrame: FrameNode = createAutoLayoutFrame({
     target: targetPage,
@@ -20,17 +23,15 @@ figma.on('run', async ({ command }: RunEvent) => {
     init: true
   });
 
-  await figma.loadFontAsync({ family: "Roboto", style: "Regular" });
-
-  // インスタンス集
+  // [2] インスタンスの収集
   const instances = figma.currentPage.findAllWithCriteria({
     types: ['INSTANCE']
   });
-  const componentMap = setComponentMap(instances);
+  const componentMap = createComponentMap(instances);
 
-  // 処理
+  // [3] 処理
   for (const componentSet of componentMap) {
-    // 格納先
+    // 格納先の生成
     const componentFrame = createAutoLayoutFrame({
       target: targetPage,
       name: componentSet[0],
@@ -43,29 +44,21 @@ figma.on('run', async ({ command }: RunEvent) => {
     componentSet[1]
       .sort((a, b) => b.width - a.width)
       .forEach(instance => {
-        const { name, id, width, height } = instance;
-
-        // 複製
-        const cloneNode = instance.clone();
-        cloneNode.resize(width, height);
-        cloneNode.layoutPositioning = 'AUTO';
-
-        // リンク
-        const textNode = figma.createText();
-        textNode.fontName = { family: "Roboto", style: "Regular" };
-        textNode.fontSize = 18;
-        textNode.textDecoration = 'UNDERLINE';
-        textNode.characters = 'LINK';
-        setHyperlink(textNode, id);
-
-        // 配置
+        const cloneNode = createClone(instance);
         componentFrame.appendChild(cloneNode);
+
+        const textNode = createLinkText(instance.id);
         componentFrame.appendChild(textNode);
+
         targetFrame.appendChild(componentFrame);
       });
 
   }
 
+  // [4] 当該ページを表示
+  figma.currentPage = targetPage;
+  figma.closePlugin('Done');
+});
 
 
   // const componentFrames: FrameNode[] = [];
@@ -88,10 +81,3 @@ figma.on('run', async ({ command }: RunEvent) => {
   // componentFrames.forEach(frame => {
   //   targetFrame.appendChild(frame);
   // });
-
-  // 当該ページを表示
-  figma.currentPage = targetPage;
-
-  figma.closePlugin('Done');
-});
-
