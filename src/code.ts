@@ -59,25 +59,3 @@ figma.on('run', async ({ command }: RunEvent) => {
   figma.currentPage = targetPage;
   figma.closePlugin('Done');
 });
-
-
-  // const componentFrames: FrameNode[] = [];
-//
-  // componentMap.forEach((values, key) => {
-  //   const componentFrame = createAutoLayoutFrame({
-  //     target: targetPage,
-  //     name: key,
-  //     flow: 'VERTICAL',
-  //     gap: 20
-  //   });
-  //   values.forEach(instance => {
-  //     const clone = instance.clone();
-  //     clone.resize(instance.width, instance.height);
-  //     componentFrame.appendChild(clone);
-  //   });
-  //   componentFrames.push(componentFrame);
-  // });
-//
-  // componentFrames.forEach(frame => {
-  //   targetFrame.appendChild(frame);
-  // });

@@ -30,6 +30,7 @@ export function createAutoLayoutFrame(options: CreateAutoLayoutFrame): FrameNode
   newFrame.counterAxisSizingMode = 'AUTO';
   newFrame.primaryAxisSizingMode = 'AUTO';
   newFrame.itemSpacing = gap;
+  newFrame.minWidth = 360;
   newFrame.maxWidth = 99999;
   newFrame.fills = [];
 
