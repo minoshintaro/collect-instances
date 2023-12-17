@@ -46,6 +46,15 @@ figma.on('run', ({ command }: RunEvent) => {
   // 当該ページを表示
   figma.currentPage = targetPage;
 
+  function focusOnNode(nodeId: string) {
+    const node = figma.getNodeById(nodeId);
+
+    if (node && node.type === 'INSTANCE') {
+      // const { x, y, width, height } = node.absoluteTransform;
+      figma.viewport.scrollAndZoomIntoView([node]);
+    }
+  }
+
   figma.closePlugin('Done');
 });
 
