@@ -49,10 +49,10 @@ figma.on('run', async ({ command }: RunEvent) => {
 
         const textNode = createLinkText(instance.id);
         componentFrame.appendChild(textNode);
-
-        targetFrame.appendChild(componentFrame);
       });
 
+    // 配置
+    targetFrame.appendChild(componentFrame);
   }
 
   // [4] 当該ページを表示

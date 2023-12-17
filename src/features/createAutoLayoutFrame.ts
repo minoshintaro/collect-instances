@@ -23,6 +23,7 @@ export function createAutoLayoutFrame(options: CreateAutoLayoutFrame): FrameNode
 
   // 新規フレーム
   const newFrame = figma.createFrame();
+
   newFrame.name = name;
   newFrame.layoutMode = flow;
   newFrame.layoutWrap = wrap;
