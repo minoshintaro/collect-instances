@@ -1,9 +1,9 @@
 import { getComponentFullName } from "./getComponentFullName";
 
 export function generateMasterName(node: InstanceNode): string {
-  if (!node.mainComponent) return 'Anonymus';
+  if (!node.mainComponent) return 'Anonymous';
   const masterName = getComponentFullName(node.mainComponent);
-  return node.parent && node.parent.type === 'COMPONENT_SET'
+  return masterName.length === 2
     ? `${masterName[0]} / ${masterName[1]}`
     : masterName[0];
 }
