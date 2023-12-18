@@ -1,17 +1,17 @@
 import { isTargetInstance } from "./isTargetInstance";
-import { getComponentName } from "./getComponentName";
+import { generateMasterName } from "./generateMasterName";
 
-export function createComponentMap(nodes: InstanceNode[]) {
+export function generateCollectionMap(nodes: InstanceNode[]) {
   const componentMap = new Map<string, InstanceNode[]>();
 
-  for (const node of nodes) {
+  for (const instance of nodes) {
     // 除外
-    if (!isTargetInstance(node)) continue;
+    if (!isTargetInstance(instance)) continue;
 
     // Mapオブジェクトにセット
-    const key = getComponentName(node);
+    const key = generateMasterName(instance);
     const values = componentMap.get(key) || [];
-    values.push(node);
+    values.push(instance);
     componentMap.set(key, values);
   }
   return componentMap;
