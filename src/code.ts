@@ -24,10 +24,14 @@ figma.on('run', async ({ command }: RunEvent) => {
   });
 
   // [2] インスタンスの収集
+  //console.time('find instances');
   const instances = figma.currentPage.findAllWithCriteria({
     types: ['INSTANCE']
   });
+  // console.timeEnd('find instances');
+  // console.time('generate collection');
   const collectionMap = generateCollectionMap(instances);
+  // console.timeEnd('generate collection');
 
   // [3] 処理
   for (const collection of collectionMap) {
@@ -47,7 +51,7 @@ figma.on('run', async ({ command }: RunEvent) => {
         const cloneNode = createClone(instance);
         componentFrame.appendChild(cloneNode);
 
-        const textNode = createLinkText(instance.id);
+        const textNode = createLinkText(instance);
         componentFrame.appendChild(textNode);
       });
 

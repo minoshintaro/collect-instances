@@ -1,20 +1,8 @@
-export function getRootFrameName(instance: InstanceNode): string | null {
-
-
-
-  let currentNode: BaseNode | null = instance;
-
-  // ルートフレームに到達するまで親ノードを遡る
-  while (currentNode && currentNode.type !== 'DOCUMENT') {
-    if (currentNode.type === 'FRAME' || currentNode.type === 'COMPONENT') {
-      const parent = currentNode.parent;
-      if (!parent || parent.type === 'DOCUMENT') {
-        // 最上位のフレームまたはコンポーネントに到達
-        return currentNode.name;
-      }
-    }
-    currentNode = currentNode.parent;
+export function getRootFrameName(node: SceneNode): string | null {
+  const root = figma.root;
+  let current = node;
+  while (current.parent && current.parent.type !== 'PAGE' && current.parent.type !== 'SECTION') {
+    if (current.parent.type !== root.type) current = current.parent;
   }
-
-  return null; // ルートフレームが見つからない場合
+  return current.name;
 }
