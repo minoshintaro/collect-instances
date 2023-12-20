@@ -1,32 +1,32 @@
 
-function getText(node: InstanceNode): string {
-  const textNodes = node.findAllWithCriteria({ types: ['TEXT'] });
-  let texts: string[] = [];
-  textNodes.forEach(text => texts.push(text.characters));
-  return texts.join(' ');
-}
+// function getText(node: InstanceNode): string {
+//   const textNodes = node.findAllWithCriteria({ types: ['TEXT'] });
+//   let texts: string[] = [];
+//   textNodes.forEach(text => texts.push(text.characters));
+//   return texts.join(' ');
+// }
 
-function getInstances(instances: InstanceNode[]): [InstanceNode[], InstanceNode[]] {
-  const textMap = new Map<string, InstanceNode[]>();
-  instances.forEach(instance => {
-    const text = getText(instance);
-    const group = textMap.get(text) || [];
-    group.push(instance);
-    textMap.set(text, group);
-  });
-
-  const matchingInstances: InstanceNode[] = [];
-  const nonMatchingInstances: InstanceNode[] = [];
-  textMap.forEach(group => {
-    if (group.length > 1) {
-      matchingInstances.push(...group);
-    } else {
-      nonMatchingInstances.push(...group);
-    }
-  });
-
-  return [matchingInstances, nonMatchingInstances];
-}
+// function getInstances(instances: InstanceNode[]): [InstanceNode[], InstanceNode[]] {
+//   const textMap = new Map<string, InstanceNode[]>();
+//   instances.forEach(instance => {
+//     const text = getText(instance);
+//     const group = textMap.get(text) || [];
+//     group.push(instance);
+//     textMap.set(text, group);
+//   });
+//
+//   const matchingInstances: InstanceNode[] = [];
+//   const nonMatchingInstances: InstanceNode[] = [];
+//   textMap.forEach(group => {
+//     if (group.length > 1) {
+//       matchingInstances.push(...group);
+//     } else {
+//       nonMatchingInstances.push(...group);
+//     }
+//   });
+//
+//   return [matchingInstances, nonMatchingInstances];
+// }
 
 // 使用例
 // const instances: InstanceNode[] = /* インスタンスの配列 */;

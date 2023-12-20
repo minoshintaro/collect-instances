@@ -1,6 +1,7 @@
 import { PAGE_NAME, FRAME_NAME, FONT_NAME, BLACK, WHITE } from "./settings";
 // import { collectInstances } from "./features/collectInstances";
 import { createAutoLayoutFrame } from "./features/createAutoLayoutFrame";
+import { createHeading } from "./features/createHeading";
 import { createClone } from "./features/createClone";
 import { generateInstanceMap } from "./features/generateInstanceMap";
 import { generateMasterName } from "./features/generateMasterName";
@@ -9,10 +10,8 @@ import { createPage } from "./features/createPage";
 
 if (figma.currentPage.name === PAGE_NAME) figma.closePlugin('Not Here');
 
-figma.notify('Doing...');
 figma.skipInvisibleInstanceChildren = true;
-
-figma.on('run', async ({ command }: RunEvent) => {
+figma.on('run', async () => {
   await figma.loadFontAsync(FONT_NAME);
 
   // [1] 配置先の生成
@@ -43,25 +42,8 @@ figma.on('run', async ({ command }: RunEvent) => {
     });
 
     // 見出し
-    const headingBox = figma.createFrame();
-    headingBox.name = componentFrame.name;
-    headingBox.layoutMode = 'VERTICAL';
-    headingBox.counterAxisSizingMode = 'AUTO';
-    headingBox.primaryAxisSizingMode = 'AUTO';
-    headingBox.paddingTop = 4;
-    headingBox.paddingBottom = 4;
-    headingBox.paddingLeft = 16;
-    headingBox.paddingRight = 16;
-    headingBox.cornerRadius = 9999;
-    headingBox.fills = BLACK;
-
-    const headingText = figma.createText();
-    headingText.fontName = FONT_NAME;
-    headingText.fontSize = 24;
-    headingText.fills = WHITE;
-    headingText.characters = componentFrame.name;
-    headingBox.appendChild(headingText);
-    componentFrame.appendChild(headingBox);
+    const heading = createHeading(componentFrame.name);
+    componentFrame.appendChild(heading);
 
     // 並び替え、展開
     collection[1]
