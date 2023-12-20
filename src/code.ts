@@ -1,12 +1,15 @@
 import { PAGE_NAME, FRAME_NAME, FONT_NAME } from "./settings";
+// import { collectInstances } from "./features/collectInstances";
 import { createAutoLayoutFrame } from "./features/createAutoLayoutFrame";
 import { createClone } from "./features/createClone";
-import { generateCollectionMap } from "./features/generateCollectionMap";
+import { generateInstanceMap } from "./features/generateInstanceMap";
+import { generateMasterName } from "./features/generateMasterName";
 import { createLinkText } from "./features/createLinkText";
 import { createPage } from "./features/createPage";
 
 if (figma.currentPage.name === PAGE_NAME) figma.closePlugin('Not Here');
 
+figma.notify('Doing...');
 figma.skipInvisibleInstanceChildren = true;
 
 figma.on('run', async ({ command }: RunEvent) => {
@@ -24,21 +27,17 @@ figma.on('run', async ({ command }: RunEvent) => {
   });
 
   // [2] インスタンスの収集
-  //console.time('find instances');
-  const instances = figma.currentPage.findAllWithCriteria({
-    types: ['INSTANCE']
-  });
-  // console.timeEnd('find instances');
-  // console.time('generate collection');
-  const collectionMap = generateCollectionMap(instances);
-  // console.timeEnd('generate collection');
+  const collectionMap = generateInstanceMap(figma.currentPage.children);
+  // const instances = figma.currentPage.findAllWithCriteria({ types: ['INSTANCE'] });
+  // const collectionMap = generateCollectionMap(instances);
 
+  console.log('test', collectionMap);
   // [3] 処理
   for (const collection of collectionMap) {
     // 格納先の生成
     const componentFrame = createAutoLayoutFrame({
       target: targetPage,
-      name: collection[0],
+      name: collection[0] ? generateMasterName(collection[0]) : 'Unkown',
       flow: 'VERTICAL',
       wrap: 'NO_WRAP',
       gap: 20
@@ -63,3 +62,4 @@ figma.on('run', async ({ command }: RunEvent) => {
   figma.currentPage = targetPage;
   figma.closePlugin('Done');
 });
+
