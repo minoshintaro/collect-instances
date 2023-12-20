@@ -8,7 +8,7 @@ export function createLinkText(node: SceneNode): TextNode {
   newText.fontName = FONT_NAME;
   newText.fontSize = 18;
   // newText.textDecoration = 'UNDERLINE';
-  // newText.fills = [LINK_COLOR];
+  newText.fills = LINK_COLOR;
   newText.characters = `\u{2192} ${getRootFrameName(node) || 'NULL'}`;
 
   setHyperlink(newText, node.id);

@@ -1,4 +1,4 @@
-import { PAGE_NAME, FRAME_NAME, FONT_NAME } from "./settings";
+import { PAGE_NAME, FRAME_NAME, FONT_NAME, BLACK, WHITE } from "./settings";
 // import { collectInstances } from "./features/collectInstances";
 import { createAutoLayoutFrame } from "./features/createAutoLayoutFrame";
 import { createClone } from "./features/createClone";
@@ -31,7 +31,6 @@ figma.on('run', async ({ command }: RunEvent) => {
   // const instances = figma.currentPage.findAllWithCriteria({ types: ['INSTANCE'] });
   // const collectionMap = generateCollectionMap(instances);
 
-  console.log('test', collectionMap);
   // [3] 処理
   for (const collection of collectionMap) {
     // 格納先の生成
@@ -42,6 +41,27 @@ figma.on('run', async ({ command }: RunEvent) => {
       wrap: 'NO_WRAP',
       gap: 20
     });
+
+    // 見出し
+    const headingBox = figma.createFrame();
+    headingBox.name = componentFrame.name;
+    headingBox.layoutMode = 'VERTICAL';
+    headingBox.counterAxisSizingMode = 'AUTO';
+    headingBox.primaryAxisSizingMode = 'AUTO';
+    headingBox.paddingTop = 4;
+    headingBox.paddingBottom = 4;
+    headingBox.paddingLeft = 16;
+    headingBox.paddingRight = 16;
+    headingBox.cornerRadius = 9999;
+    headingBox.fills = BLACK;
+
+    const headingText = figma.createText();
+    headingText.fontName = FONT_NAME;
+    headingText.fontSize = 24;
+    headingText.fills = WHITE;
+    headingText.characters = componentFrame.name;
+    headingBox.appendChild(headingText);
+    componentFrame.appendChild(headingBox);
 
     // 並び替え、展開
     collection[1]
