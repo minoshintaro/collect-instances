@@ -1,24 +1,63 @@
-export function generateInstanceMap(nodes: readonly SceneNode[]): Map<InstanceNode['mainComponent'], InstanceNode[]> {
-  const instanceMap = new Map<InstanceNode['mainComponent'], InstanceNode[]>();
-  let stockNodes: SceneNode[] = [...nodes];
+import { getContainerNode } from "./getContainerNode";
+import { getInnerText } from "./getInnerText";
 
-  while (stockNodes.length > 0) {
-    let temp: SceneNode[] = [];
+interface InstanceData {
+  node: InstanceNode;
+  text: string;
+  location: SceneNode;
+}
 
-    for (const node of stockNodes) {
+export function generateInstanceMap(nodes: readonly SceneNode[]): Map<InstanceNode['mainComponent'], InstanceData[]> {
+  const instanceMap = new Map<InstanceNode['mainComponent'], InstanceData[]>();
+  let targetNodes: SceneNode[] = [...nodes];
+
+  while (targetNodes.length > 0) {
+    let subNodes: SceneNode[] = [];
+
+    for (const node of targetNodes) {
       if (!node || !node.visible) continue;
       if (node.type === 'INSTANCE') {
         const key = node.mainComponent;
         const values = instanceMap.get(key) || [];
-        values.push(node);
+        const data = {
+          node: node,
+          text: getInnerText(node),
+          location: getContainerNode(node)
+        }
+        values.push(data);
         instanceMap.set(key, values);
       } else if (node.type === 'FRAME' || node.type === 'GROUP' || node.type === 'SECTION') {
-        temp.push(...node.children);
+        subNodes.push(...node.children);
       }
     }
 
-    stockNodes = temp;
+    targetNodes = subNodes;
   }
 
   return instanceMap;
 }
+
+// export function generateInstanceMap(nodes: readonly SceneNode[]): Map<InstanceNode['mainComponent'], InstanceNode[]> {
+//   const instanceMap = new Map<InstanceNode['mainComponent'], InstanceNode[]>();
+//   let stockNodes: SceneNode[] = [...nodes];
+//
+//   while (stockNodes.length > 0) {
+//     let temp: SceneNode[] = [];
+//
+//     for (const node of stockNodes) {
+//       if (!node || !node.visible) continue;
+//       if (node.type === 'INSTANCE') {
+//         const key = node.mainComponent;
+//         const values = instanceMap.get(key) || [];
+//         values.push(node);
+//         instanceMap.set(key, values);
+//       } else if (node.type === 'FRAME' || node.type === 'GROUP' || node.type === 'SECTION') {
+//         temp.push(...node.children);
+//       }
+//     }
+//
+//     stockNodes = temp;
+//   }
+//
+//   return instanceMap;
+// }
