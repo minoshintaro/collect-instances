@@ -9,14 +9,14 @@ export function createLink(node: SceneNode): FrameNode {
   linkBox.primaryAxisSizingMode = 'AUTO';
   linkBox.paddingTop = 4;
   linkBox.paddingBottom = 4;
-  linkBox.paddingLeft = 16;
-  linkBox.paddingRight = 16;
+  linkBox.paddingLeft = 12;
+  linkBox.paddingRight = 12;
   linkBox.cornerRadius = 9999;
   linkBox.fills = LIGHT_GRAY;
 
   const linkText = figma.createText();
   linkText.fontName = FONT_NAME;
-  linkText.fontSize = 18;
+  linkText.fontSize = 14;
   linkText.fills = LINK_COLOR;
   linkText.characters = `\u{2192} ${getRootFrameName(node) || 'NULL'}`;
   linkText.hyperlink = { type: "NODE", value: node.id };

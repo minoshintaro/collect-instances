@@ -10,15 +10,7 @@ import { findPage } from "./features/findPage";
 import { generateInstanceMap } from "./features/generateInstanceMap";
 import { generateMasterName } from "./features/generateMasterName";
 
-if (figma.currentPage.name === PAGE_NAME) figma.closePlugin('Not Here');
-
-figma.skipInvisibleInstanceChildren = true;
-
-figma.on('run', async () => {
-  // [0] 事前処理
-  figma.notify('Doing...');
-  await figma.loadFontAsync(FONT_NAME);
-
+async function collectInstances() {
   // [1] 配置先の生成
   const targetPage: PageNode = findPage(PAGE_NAME) || createPage(PAGE_NAME);
   const layoutFrameProps: LayoutFramePorps = {
@@ -68,12 +60,29 @@ figma.on('run', async () => {
     layoutFrame.appendChild(stackFrame);
   }
 
+  // [4] コンポーネント名で並び替え
   const sorted = [...layoutFrame.children].sort((a, b) => {
     return a.name.localeCompare(b.name);
   });
   sorted.forEach(frame => layoutFrame.appendChild(frame));
 
-  // [4] 当該ページを表示
+  // [5] 移動
   figma.currentPage = targetPage;
-  figma.closePlugin('Done');
+}
+
+figma.on('run', async () => {
+  try {
+    if (figma.currentPage.name === PAGE_NAME) figma.closePlugin('Not Here');
+
+    figma.notify('Doing...', { timeout: 2000 });
+    figma.skipInvisibleInstanceChildren = true;
+
+    await figma.loadFontAsync(FONT_NAME);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await collectInstances();
+
+    figma.closePlugin('Done')
+  } catch (error) {
+    figma.closePlugin(`Error: ${error instanceof Error ? error.message : 'error'}`);
+  }
 });
