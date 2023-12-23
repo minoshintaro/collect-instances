@@ -1,4 +1,4 @@
-import { FONT_NAME, LINK_COLOR, WHITE } from "../settings";
+import { FONT_NAME, LINK_COLOR, LIGHT_GRAY } from "../settings";
 import { getRootFrameName } from "./getRootFrameName";
 
 export function createLink(node: SceneNode): FrameNode {
@@ -12,7 +12,7 @@ export function createLink(node: SceneNode): FrameNode {
   linkBox.paddingLeft = 16;
   linkBox.paddingRight = 16;
   linkBox.cornerRadius = 9999;
-  linkBox.fills = WHITE;
+  linkBox.fills = LIGHT_GRAY;
 
   const linkText = figma.createText();
   linkText.fontName = FONT_NAME;
