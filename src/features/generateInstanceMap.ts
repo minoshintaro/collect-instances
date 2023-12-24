@@ -5,10 +5,9 @@ import { getInnerText } from "./getInnerText";
 export function generateInstanceMap(nodes: readonly SceneNode[]): Map<InstanceNode['mainComponent'], InstanceData[]> {
   const instanceMap = new Map<InstanceNode['mainComponent'], InstanceData[]>();
   let targetNodes: SceneNode[] = [...nodes];
+  let subNodes: SceneNode[] = [];
 
   while (targetNodes.length > 0) {
-    let subNodes: SceneNode[] = [];
-
     for (const node of targetNodes) {
       // 除外
       if (!node || !node.visible) continue;
@@ -30,6 +29,7 @@ export function generateInstanceMap(nodes: readonly SceneNode[]): Map<InstanceNo
     }
 
     targetNodes = subNodes;
+    subNodes = [];
   }
 
   return instanceMap;
