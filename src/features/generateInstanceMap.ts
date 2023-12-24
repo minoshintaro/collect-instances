@@ -1,11 +1,6 @@
-import { getContainerNode } from "./getContainerNode";
+import { InstanceData } from "../types";
+import { getFirstNode } from "./getFirstNode";
 import { getInnerText } from "./getInnerText";
-
-interface InstanceData {
-  node: InstanceNode;
-  text: string;
-  location: SceneNode;
-}
 
 export function generateInstanceMap(nodes: readonly SceneNode[]): Map<InstanceNode['mainComponent'], InstanceData[]> {
   const instanceMap = new Map<InstanceNode['mainComponent'], InstanceData[]>();
@@ -25,7 +20,7 @@ export function generateInstanceMap(nodes: readonly SceneNode[]): Map<InstanceNo
         const data = {
           node: node,
           text: getInnerText(node),
-          location: getContainerNode(node)
+          location: getFirstNode(node)
         }
         values.push(data);
         instanceMap.set(key, values);

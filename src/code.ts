@@ -1,9 +1,8 @@
-import { LayoutFramePorps } from "./types";
-import { PAGE_NAME, FRAME_NAME, FONT_NAME } from "./settings";
+import { LayoutFramePorps, InstanceData } from "./types";
+import { PAGE_NAME, FRAME_NAME, FONT_NAME, HEADING_THEME, LINK_THEME } from "./settings";
 import { createAutoLayoutFrame } from "./features/createAutoLayoutFrame";
 import { createClone } from "./features/createClone";
-import { createHeading } from "./features/createHeading";
-import { createLink } from "./features/createLink";
+import { createLabel } from "./features/createLabel";
 import { createPage } from "./features/createPage";
 import { findFrame } from "./features/findFrame";
 import { findPage } from "./features/findPage";
@@ -27,20 +26,23 @@ async function collectInstances() {
 
   // [3] 繰り返し処理
   for (const collection of collectionMap) {
-    const masterComponent = collection[0];
-    const instances = collection[1]
+    const masterComponent: ComponentNode | null = collection[0];
+    const instances: InstanceData[] = collection[1]
 
     // [3-1] 格納先の生成
-    const masterName = masterComponent ? generateMasterName(masterComponent) : 'Unkown';
-    const stackFrame = createAutoLayoutFrame({
-      parent: targetPage,
+    const masterName: string = masterComponent ? generateMasterName(masterComponent) : 'Unkown';
+    const stackFrame: FrameNode = createAutoLayoutFrame({
+      parent: layoutFrame,
       name: masterName,
       flow: 'VERTICAL',
       wrap: 'NO_WRAP',
       gap: 20
     });
-    const heading = createHeading(masterName);
-    stackFrame.appendChild(heading);
+    const heading: FrameNode = createLabel({
+      parent: stackFrame,
+      name: masterName,
+      theme: HEADING_THEME
+    });
 
     // [3-2] 並び替え、展開
     instances
@@ -50,14 +52,17 @@ async function collectInstances() {
         return b.node.width - a.node.width;
       })
       .forEach(instance => {
-        const cloneNode = createClone(instance.node);
-        const textNode = createLink(instance.location);
-        stackFrame.appendChild(cloneNode);
-        stackFrame.appendChild(textNode);
+        const cloneNode = createClone({
+          parent: stackFrame,
+          node: instance.node
+        });
+        const linkNode = createLabel({
+          parent: stackFrame,
+          name: instance.location.name,
+          link: instance.node,
+          theme: LINK_THEME
+        });
       });
-
-    // [3-3] 配置
-    layoutFrame.appendChild(stackFrame);
   }
 
   // [4] コンポーネント名で並び替え

@@ -23,3 +23,9 @@ export function createHeading(input: string): FrameNode {
   return headingBox;
 }
 
+const HEADING_THEME = {
+  text: 24,
+  px: 24,
+  py: 4,
+  fill: [BLACK, WHITE]
+}

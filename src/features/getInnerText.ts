@@ -1,14 +1,6 @@
-type HasFindAllWithCriteria =
-  BooleanOperationNode |
-  ComponentNode |
-  ComponentSetNode |
-  FrameNode |
-  GroupNode |
-  InstanceNode |
-  PageNode |
-  SectionNode;
+import { HasChildren } from "../types";
 
-export function getInnerText(node: HasFindAllWithCriteria): string {
+export function getInnerText(node: HasChildren): string {
   return node
     .findAllWithCriteria({ types: ['TEXT'] })
     .filter(node => node.visible)

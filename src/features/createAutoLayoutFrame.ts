@@ -15,6 +15,6 @@ export function createAutoLayoutFrame(props: LayoutFramePorps): FrameNode {
   newFrame.fills = [];
   newFrame.clipsContent = false;
 
-  parent.appendChild(newFrame);
+  if (parent) parent.appendChild(newFrame);
   return newFrame;
 }
