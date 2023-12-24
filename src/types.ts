@@ -8,6 +8,19 @@ export type HasChildren =
   | PageNode
   | SectionNode;
 
+export type InstanceMap = Map<InstanceNode['mainComponent'], InstanceData[]>;
+
+export interface InstanceMapProps {
+  nodes: readonly SceneNode[],
+  filter: ComponentNode[]
+}
+
+export interface InstanceData {
+  node: InstanceNode;
+  text: string;
+  location: SceneNode;
+}
+
 export interface LayoutFramePorps {
   parent?: HasChildren;
   name: string;
@@ -35,8 +48,3 @@ export interface Theme {
   fill: ReadonlyArray<Paint>[];
 }
 
-export interface InstanceData {
-  node: InstanceNode;
-  text: string;
-  location: SceneNode;
-}

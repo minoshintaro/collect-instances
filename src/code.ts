@@ -8,6 +8,7 @@ import { findFrame } from "./features/findFrame";
 import { findPage } from "./features/findPage";
 import { generateInstanceMap } from "./features/generateInstanceMap";
 import { generateMasterName } from "./features/generateMasterName";
+import { getMasterComponents } from "./features/getMasterComponents";
 
 async function collectInstances() {
   // [1] 配置先の生成
@@ -22,7 +23,10 @@ async function collectInstances() {
   const layoutFrame: FrameNode = findFrame(layoutFrameProps, 'init') || createAutoLayoutFrame(layoutFrameProps);
 
   // [2] インスタンスの収集
-  const collectionMap = generateInstanceMap(figma.currentPage.children);
+  const collectionMap = generateInstanceMap({
+    nodes: figma.currentPage.children,
+    filter: getMasterComponents(figma.currentPage.selection)
+  });
 
   // [3] 繰り返し処理
   for (const collection of collectionMap) {
