@@ -66,11 +66,6 @@ async function collectInstances() {
   }
 
   // [4] コンポーネント名で並び替え
-  // const sorted = [...layoutFrame.children].sort((a, b) => {
-  //   return a.name.localeCompare(b.name);
-  // });
-  // sorted.forEach(frame => layoutFrame.appendChild(frame));
-
   [...layoutFrame.children]
     .sort((a, b) => a.name.localeCompare(b.name))
     .forEach(frame => layoutFrame.appendChild(frame));
@@ -91,6 +86,6 @@ figma.on('run', async () => {
 
     figma.closePlugin('Done')
   } catch (error) {
-    figma.closePlugin(`Error: ${error instanceof Error ? error.message : '?'}`);
+    figma.closePlugin(`${error instanceof Error ? error.message : 'Error'}`);
   }
 });

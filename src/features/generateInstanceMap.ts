@@ -1,9 +1,11 @@
 import { InstanceData } from "../types";
 import { getFirstNode } from "./getFirstNode";
 import { getInnerText } from "./getInnerText";
+import { getMasterComponents } from "./getMasterComponents";
 
 export function generateInstanceMap(nodes: readonly SceneNode[]): Map<InstanceNode['mainComponent'], InstanceData[]> {
   const instanceMap = new Map<InstanceNode['mainComponent'], InstanceData[]>();
+  const selectedComponents = getMasterComponents(figma.currentPage.selection);
   let targetNodes: SceneNode[] = [...nodes];
   let subNodes: SceneNode[] = [];
 
@@ -21,6 +23,9 @@ export function generateInstanceMap(nodes: readonly SceneNode[]): Map<InstanceNo
           text: getInnerText(node),
           location: getFirstNode(node)
         }
+
+        if (key && selectedComponents.length && !selectedComponents.includes(key)) continue;
+
         values.push(data);
         instanceMap.set(key, values);
       } else if (node.type === 'FRAME' || node.type === 'GROUP' || node.type === 'SECTION') {
