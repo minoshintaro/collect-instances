@@ -15,7 +15,10 @@ export function generateInstanceMap(nodes: readonly SceneNode[]): Map<InstanceNo
     let subNodes: SceneNode[] = [];
 
     for (const node of targetNodes) {
+      // 除外
       if (!node || !node.visible) continue;
+
+      // Mapに登録
       if (node.type === 'INSTANCE') {
         const key = node.mainComponent;
         const values = instanceMap.get(key) || [];

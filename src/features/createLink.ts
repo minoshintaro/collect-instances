@@ -1,5 +1,5 @@
 import { FONT_NAME, LINK_COLOR, LIGHT_GRAY } from "../settings";
-import { getRootFrameName } from "./getRootFrameName";
+import { getFirstNode } from "./getFirstNode";
 
 export function createLink(node: SceneNode): FrameNode {
   const linkBox = figma.createFrame();
@@ -18,7 +18,7 @@ export function createLink(node: SceneNode): FrameNode {
   linkText.fontName = FONT_NAME;
   linkText.fontSize = 14;
   linkText.fills = LINK_COLOR;
-  linkText.characters = `\u{2192} ${getRootFrameName(node) || 'NULL'}`;
+  linkText.characters = `\u{2192} ${getFirstNode(node).name || 'NULL'}`;
   linkText.hyperlink = { type: "NODE", value: node.id };
 
   linkBox.appendChild(linkText);

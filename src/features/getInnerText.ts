@@ -11,6 +11,7 @@ type HasFindAllWithCriteria =
 export function getInnerText(node: HasFindAllWithCriteria): string {
   return node
     .findAllWithCriteria({ types: ['TEXT'] })
+    .filter(node => node.visible)
     .map(node => node.characters)
     .join(' ');
 }

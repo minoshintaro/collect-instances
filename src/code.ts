@@ -1,4 +1,4 @@
-import { LayoutFramePorps } from "./tyes";
+import { LayoutFramePorps } from "./types";
 import { PAGE_NAME, FRAME_NAME, FONT_NAME } from "./settings";
 import { createAutoLayoutFrame } from "./features/createAutoLayoutFrame";
 import { createClone } from "./features/createClone";
@@ -14,7 +14,7 @@ async function collectInstances() {
   // [1] 配置先の生成
   const targetPage: PageNode = findPage(PAGE_NAME) || createPage(PAGE_NAME);
   const layoutFrameProps: LayoutFramePorps = {
-    target: targetPage,
+    parent: targetPage,
     name: FRAME_NAME,
     flow: 'HORIZONTAL',
     wrap: 'WRAP',
@@ -33,7 +33,7 @@ async function collectInstances() {
     // [3-1] 格納先の生成
     const masterName = masterComponent ? generateMasterName(masterComponent) : 'Unkown';
     const stackFrame = createAutoLayoutFrame({
-      target: targetPage,
+      parent: targetPage,
       name: masterName,
       flow: 'VERTICAL',
       wrap: 'NO_WRAP',
@@ -73,7 +73,6 @@ async function collectInstances() {
 figma.on('run', async () => {
   try {
     if (figma.currentPage.name === PAGE_NAME) figma.closePlugin('Not Here');
-
     figma.notify('Doing...', { timeout: 2000 });
     figma.skipInvisibleInstanceChildren = true;
 
@@ -83,6 +82,6 @@ figma.on('run', async () => {
 
     figma.closePlugin('Done')
   } catch (error) {
-    figma.closePlugin(`Error: ${error instanceof Error ? error.message : 'error'}`);
+    figma.closePlugin(`Error: ${error instanceof Error ? error.message : '?'}`);
   }
 });
