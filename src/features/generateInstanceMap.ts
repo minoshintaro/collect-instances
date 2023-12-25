@@ -3,9 +3,10 @@ import { getFirstNode } from "./getFirstNode";
 import { getInnerText } from "./getInnerText";
 
 export function generateInstanceMap(props: InstanceMapProps): InstanceMap {
-  const { nodes, filter } = props;
+  const { targets, scopes } = props;
+  const componentSet = new Set<ComponentNode | null>;
   const instanceMap: InstanceMap = new Map();
-  let targetNodes: SceneNode[] = [...nodes];
+  let targetNodes: SceneNode[] = [...targets];
   let subNodes: SceneNode[] = [];
 
   while (targetNodes.length > 0) {
@@ -22,13 +23,14 @@ export function generateInstanceMap(props: InstanceMapProps): InstanceMap {
         case 'INSTANCE': {
           const key = node.mainComponent;
           const values = instanceMap.get(key) || [];
-          if (key && filter.length && !filter.includes(key)) continue;
+          if (key && scopes.length && !scopes.includes(key)) continue;
 
           values.push( {
             node: node,
             text: getInnerText(node),
             location: getFirstNode(node)
           });
+          componentSet.add(key);
           instanceMap.set(key, values);
           break;
         }
@@ -38,5 +40,12 @@ export function generateInstanceMap(props: InstanceMapProps): InstanceMap {
     targetNodes = subNodes;
     subNodes = [];
   }
+
+  // const sortedEntries = Array.from(instanceMap.entries()).sort((a, b) => {
+  //   const keyA = a[0];
+  //   const keyB = b[0];
+  //   return keyA?.name.localeCompare(keyB);
+  // });
+
   return instanceMap;
 }

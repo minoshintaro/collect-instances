@@ -11,8 +11,8 @@ export type HasChildren =
 export type InstanceMap = Map<InstanceNode['mainComponent'], InstanceData[]>;
 
 export interface InstanceMapProps {
-  nodes: readonly SceneNode[],
-  filter: ComponentNode[]
+  targets: readonly SceneNode[],
+  scopes: ComponentNode[]
 }
 
 export interface InstanceData {

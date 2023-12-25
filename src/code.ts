@@ -11,6 +11,8 @@ import { generateMasterName } from "./features/generateMasterName";
 import { getMasterComponents } from "./features/getMasterComponents";
 
 async function collectInstances() {
+  const selectedNodes: ComponentNode[] = getMasterComponents(figma.currentPage.selection);
+
   // [1] 配置先の生成
   const targetPage: PageNode = findPage(PAGE_NAME) || createPage(PAGE_NAME);
   const layoutFrameProps: LayoutFramePorps = {
@@ -23,12 +25,18 @@ async function collectInstances() {
   const layoutFrame: FrameNode = findFrame(layoutFrameProps, 'init') || createAutoLayoutFrame(layoutFrameProps);
 
   // [2] インスタンスの収集
+  // let allNodes: SceneNode[] = [];
+  // figma.root.children.forEach(page => {
+  //   allNodes = allNodes.concat(page.children);
+  // });
+
   const collectionMap = generateInstanceMap({
-    nodes: figma.currentPage.children,
-    filter: getMasterComponents(figma.currentPage.selection)
+    targets: figma.currentPage.children,
+    scopes: selectedNodes
   });
 
   // [3] 繰り返し処理
+  // let count: number = 0;
   for (const collection of collectionMap) {
     const masterComponent: ComponentNode | null = collection[0];
     const instances: InstanceData[] = collection[1]
@@ -67,7 +75,9 @@ async function collectInstances() {
           theme: LINK_THEME
         });
       });
+    // count = count + instances.length;
   }
+  // console.log('test', count);
 
   // [4] コンポーネント名で並び替え
   [...layoutFrame.children]
