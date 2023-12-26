@@ -1,8 +1,7 @@
-import { LayoutFramePorps, InstanceData } from "./types";
-import { PAGE_NAME, FRAME_NAME, FONT_NAME, HEADING_THEME, LINK_THEME } from "./settings";
-import { createAutoLayoutFrame } from "./features/createAutoLayoutFrame";
+import { ElementProps, InstanceData } from "./types";
+import { PAGE_NAME, FRAME_NAME, FONT_NAME, LINK_COLOR, LIGHT_GRAY, BLACK, WHITE } from "./settings";
 import { createClone } from "./features/createClone";
-import { createLabel } from "./features/createLabel";
+import { createElement } from "./features/createElement";
 import { createPage } from "./features/createPage";
 import { findFrame } from "./features/findFrame";
 import { findPage } from "./features/findPage";
@@ -15,21 +14,14 @@ async function collectInstances() {
 
   // [1] 配置先の生成
   const targetPage: PageNode = findPage(PAGE_NAME) || createPage(PAGE_NAME);
-  const layoutFrameProps: LayoutFramePorps = {
-    parent: targetPage,
+  const layoutFrameProps: ElementProps = {
     name: FRAME_NAME,
-    flow: 'HORIZONTAL',
-    wrap: 'WRAP',
-    gap: 200
+    parent: targetPage,
+    layout: { flow: 'WRAP', gap: [200], maxW: 99999 }
   };
-  const layoutFrame: FrameNode = findFrame(layoutFrameProps, 'init') || createAutoLayoutFrame(layoutFrameProps);
+  const layoutFrame: FrameNode = findFrame(layoutFrameProps, 'init') || createElement(layoutFrameProps);
 
   // [2] インスタンスの収集
-  // let allNodes: SceneNode[] = [];
-  // figma.root.children.forEach(page => {
-  //   allNodes = allNodes.concat(page.children);
-  // });
-
   const collectionMap = generateInstanceMap({
     targets: figma.currentPage.children,
     scopes: selectedNodes
@@ -43,17 +35,17 @@ async function collectInstances() {
 
     // [3-1] 格納先の生成
     const masterName: string = masterComponent ? generateMasterName(masterComponent) : 'Unkown';
-    const stackFrame: FrameNode = createAutoLayoutFrame({
+    const stackFrame: FrameNode = createElement({
+      name: masterName,
       parent: layoutFrame,
-      name: masterName,
-      flow: 'VERTICAL',
-      wrap: 'NO_WRAP',
-      gap: 20
+      layout: { flow: 'COL', gap: [20], minW: 360 }
     });
-    const heading: FrameNode = createLabel({
+    const heading: FrameNode = createElement({
+      name: 'Heading',
       parent: stackFrame,
-      name: masterName,
-      theme: HEADING_THEME
+      text: { value: masterName },
+      layout: { flow: 'COL', padding: [4, 24] },
+      theme: { fontSize: 24, fill: [BLACK, WHITE], radius: 9999 }
     });
 
     // [3-2] 並び替え、展開
@@ -68,11 +60,12 @@ async function collectInstances() {
           parent: stackFrame,
           node: instance.node
         });
-        const linkNode = createLabel({
+        const linkNode = createElement({
+          name: 'Link',
           parent: stackFrame,
-          name: instance.location.name,
-          link: instance.node,
-          theme: LINK_THEME
+          text: { value: instance.location.name, link: instance.node },
+          layout: { flow: 'COL', padding: [4, 14] },
+          theme: { fontSize: 14, fill: [LIGHT_GRAY, LINK_COLOR], radius: 9999 }
         });
       });
     // count = count + instances.length;

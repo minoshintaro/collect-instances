@@ -21,30 +21,28 @@ export interface InstanceData {
   location: SceneNode;
 }
 
-export interface LayoutFramePorps {
-  parent?: HasChildren;
+export interface ElementProps {
   name: string;
-  flow: AutoLayoutMixin['layoutMode'];
-  wrap: AutoLayoutMixin['layoutWrap'];
-  gap: number;
-}
-
-export interface LabelProps {
   parent?: HasChildren;
-  name: string;
-  link?: SceneNode;
-  theme: Theme;
+  text?: {
+    value: string;
+    link?: SceneNode;
+  };
+  layout?: {
+    flow?: 'ROW' | 'COL' | 'WRAP';
+    gap?: number[];
+    padding?: number[];
+    minW?: number,
+    maxW?: number
+  };
+  theme?: {
+    fontSize?: number;
+    fill?: ReadonlyArray<Paint>[];
+    radius?: CornerMixin['cornerRadius'];
+  };
 }
 
 export interface CloneProps {
   parent?: HasChildren;
   node: SceneNode;
 }
-
-export interface Theme {
-  size: number;
-  px: number;
-  py: number;
-  fill: ReadonlyArray<Paint>[];
-}
-
