@@ -8,30 +8,30 @@ import { findPage } from "./features/findPage";
 import { generateInstanceCatalog } from "./features/generateInstanceCatalog";
 import { generateMasterName } from "./features/generateMasterName";
 import { getMasterComponents } from "./features/getMasterComponents";
-import { sortByName } from "./features/sortByName";
+import { sortComponentsByName } from "./features/sortByName";
 
 async function collectInstances() {
-  // [0]
-  const selectedNodes: ComponentNode[] = getMasterComponents(figma.currentPage.selection);
-
   // [1] 配置先の生成
   const targetPage: PageNode = findPage(PAGE_NAME) || createPage(PAGE_NAME);
+  const selectedComponents: ComponentNode[] = getMasterComponents(figma.currentPage.selection);
+
   const layoutFrameProps: ElementProps = {
     name: FRAME_NAME,
     parent: targetPage,
     layout: { flow: 'WRAP', gap: [200], maxW: 99999 }
   };
-  const layoutFrame: FrameNode = findFrame(layoutFrameProps, 'init') || createElement(layoutFrameProps);
+  const layoutFrame: FrameNode = findFrame(layoutFrameProps, !selectedComponents.length) || createElement(layoutFrameProps);
 
   // [2] インスタンスの収集
   const instanceCatalog: InstanceCatalog = generateInstanceCatalog({
     targets: figma.currentPage.children,
-    scopes: selectedNodes
+    scopes: selectedComponents
   });
-  console.log('test', 'Component Volumes:', instanceCatalog.map.size, 'Scoped:', selectedNodes.length);
+
+  console.log('test', 'Component count:', instanceCatalog.map.size, 'Scoped:', selectedComponents.length);
 
   // [3] マスターコンポーネント毎に処理
-  const orderedMasters: ComponentNode[] = sortByName([...instanceCatalog.map.keys()]);
+  const orderedMasters: ComponentNode[] = sortComponentsByName([...instanceCatalog.map.keys()]);
   for (const master of orderedMasters) {
     const dataList = instanceCatalog.map.get(master) || null;
     if (!dataList) continue;
@@ -53,14 +53,16 @@ async function collectInstances() {
     // [3-2] インスタンスの複製
     dataList
       .sort((a, b) => {
-        if (a.text < b.text) return -1;
-        if (a.text > b.text) return 1;
+        // const comparison = b.text.length - a.text.length;
+        // if (comparison !== 0) return comparison;
+        // if (a.text < b.text) return -1;
+        // if (a.text > b.text) return 1;
         return b.node.width - a.node.width;
       })
       .forEach(instance => {
         const cloneNode = createClone({
-          parent: stackFrame,
-          node: instance.node
+          node: instance.node,
+          parent: stackFrame
         });
         const linkNode = createElement({
           name: 'Link',
@@ -70,7 +72,8 @@ async function collectInstances() {
           theme: { fontSize: 14, fill: [LIGHT_GRAY, LINK_COLOR], radius: 9999 }
         });
       });
-    // console.log('test', master.name);
+
+    console.log('test', generateMasterName(master));
   }
 
 

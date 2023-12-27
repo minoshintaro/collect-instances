@@ -25,8 +25,8 @@ export type InstanceCatalog = {
 }
 
 export interface CloneProps {
-  parent?: HasChildren;
   node: SceneNode;
+  parent?: HasChildren;
 }
 
 export interface ElementProps {
