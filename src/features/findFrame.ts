@@ -1,6 +1,6 @@
-import { LayoutFramePorps } from "../types";
+import { ElementProps } from "../types";
 
-export function findFrame(props: LayoutFramePorps, option: string): FrameNode | null {
+export function findFrame(props: ElementProps, option: string): FrameNode | null {
   const { parent, name } = props;
   const foundFrame = parent
     ? parent.children.find(child => child.name === name && child.type === 'FRAME') as FrameNode

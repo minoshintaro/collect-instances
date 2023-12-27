@@ -8,17 +8,25 @@ export type HasChildren =
   | PageNode
   | SectionNode;
 
-export type InstanceMap = Map<InstanceNode['mainComponent'], InstanceData[]>;
-
-export interface InstanceMapProps {
-  targets: readonly SceneNode[],
-  scopes: ComponentNode[]
+export interface InstanceCatalogProps {
+  targets: readonly SceneNode[];
+  scopes: ComponentNode[];
 }
 
 export interface InstanceData {
   node: InstanceNode;
   text: string;
   location: SceneNode;
+}
+
+export type InstanceCatalog = {
+  map: Map<ComponentNode, InstanceData[]>;
+  unknown: InstanceData[];
+}
+
+export interface CloneProps {
+  parent?: HasChildren;
+  node: SceneNode;
 }
 
 export interface ElementProps {
@@ -32,17 +40,12 @@ export interface ElementProps {
     flow?: 'ROW' | 'COL' | 'WRAP';
     gap?: number[];
     padding?: number[];
-    minW?: number,
-    maxW?: number
+    minW?: number;
+    maxW?: number;
   };
   theme?: {
     fontSize?: number;
     fill?: ReadonlyArray<Paint>[];
     radius?: CornerMixin['cornerRadius'];
   };
-}
-
-export interface CloneProps {
-  parent?: HasChildren;
-  node: SceneNode;
 }
