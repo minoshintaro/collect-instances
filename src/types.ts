@@ -1,7 +1,7 @@
 export interface Target {
   page: PageNode;
-  selection: ComponentNode[];
   nodes: SceneNode[];
+  selection: ComponentNode[];
 }
 
 export interface CreationProps {
@@ -13,7 +13,6 @@ export interface CreationProps {
 
 export interface ElementProps {
   name: string;
-  parent?: HasChildren;
   text?: {
     value: string;
     link?: SceneNode;

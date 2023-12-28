@@ -5,7 +5,7 @@ export function findFrame(props: ExistingFrame): FrameNode | null {
   const isExisting = (node: SceneNode): boolean => node.name === name && node.type === 'FRAME';
 
   if (init) {
-    parent.findChildren(isExisting);
+    parent.findChildren(isExisting).forEach(node => node.remove());
     return null;
   }
 

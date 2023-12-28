@@ -14,9 +14,9 @@ function generateFlow(input: string): AutoLayoutMixin['layoutMode'] {
 }
 
 export function createElement(props: ElementProps): FrameNode {
-  const { name, parent, text, layout, theme } = props;
-
+  const { name, text, layout, theme } = props;
   const newFrame = figma.createFrame();
+
   newFrame.name = name;
   newFrame.clipsContent = false;
   newFrame.fills = theme && theme.fill ? theme.fill[0] : [];
@@ -31,10 +31,10 @@ export function createElement(props: ElementProps): FrameNode {
     if (flow) {
       newFrame.layoutMode = generateFlow(flow);
       newFrame.layoutWrap = flow === 'WRAP' ? 'WRAP' : 'NO_WRAP';
-      if (newFrame.layoutMode !== 'NONE') {
-        newFrame.counterAxisSizingMode = 'AUTO';
-        newFrame.primaryAxisSizingMode = 'AUTO';
-      }
+    }
+    if (newFrame.layoutMode !== 'NONE') {
+      newFrame.counterAxisSizingMode = 'AUTO';
+      newFrame.primaryAxisSizingMode = 'AUTO';
     }
     if (gap) {
       newFrame.itemSpacing = gap[0];
@@ -50,8 +50,8 @@ export function createElement(props: ElementProps): FrameNode {
 
   if (text) {
     const { value, link } = text;
-
     const newText = figma.createText();
+
     newText.fontName = FONT_NAME;
     newText.fontSize = theme && theme.fontSize ? theme.fontSize : 14;
     newText.fills = theme && theme.fill ? theme.fill[1] : BLACK;
@@ -61,6 +61,5 @@ export function createElement(props: ElementProps): FrameNode {
     newFrame.appendChild(newText);
   }
 
-  if (parent) parent.appendChild(newFrame);
   return newFrame;
 }

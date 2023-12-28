@@ -14,10 +14,9 @@ async function collectInstances() {
   // [0] 設定
   const target: Target = {
     page: findPage(PAGE_NAME) || createPage(PAGE_NAME),
-    selection: getMasterComponents([...figma.currentPage.selection]),
-    nodes: [...figma.currentPage.children]
+    nodes: [...figma.currentPage.children],
+    selection: getMasterComponents([...figma.currentPage.selection])
   }
-
   const creation: CreationProps = {
     layoutFrame: {
       name: FRAME_NAME,
@@ -25,7 +24,7 @@ async function collectInstances() {
     },
     stackFrame: {
       name: 'Stack',
-      layout: { flow: 'COL', gap: [20], minW: 360 } // 保留 minW
+      layout: { flow: 'COL', gap: [20] }
     },
     heading: {
       name: 'Heading',
@@ -41,35 +40,36 @@ async function collectInstances() {
     }
   }
 
-  // [1] 素材の準備
+  // [1] 素材を準備
   const layoutFrame: FrameNode = findFrame({ name: FRAME_NAME, parent: target.page, init: !target.selection.length}) || createElement(creation.layoutFrame);
   const stackFrame: FrameNode = createElement(creation.stackFrame);
   const heading: FrameNode = createElement(creation.heading);
   const link: FrameNode = createElement(creation.link);
+  target.page.appendChild(layoutFrame);
 
-  // [2] インスタンスの収集
+  // [2] インスタンスを収集
   const instanceCatalog: InstanceCatalog = generateInstanceCatalog(target);
+  const orderedMasters: ComponentNode[] = sortComponentsByName([...instanceCatalog.map.keys()]);
 
-  console.log('test', 'Component count:', instanceCatalog.map.size, 'Scoped:', target.selection.length);
+  console.log('test', 'start clone');
 
   // [3] マスターコンポーネント毎に処理
-  const orderedMasters: ComponentNode[] = sortComponentsByName([...instanceCatalog.map.keys()]);
   for (const master of orderedMasters) {
     const dataList: InstanceData[] = instanceCatalog.map.get(master) || [];
 
-    // [3-1] 要素の複製
+    // [3-1] 要素を複製
     const newStackFrame: FrameNode = stackFrame.clone();
     const newHeading: FrameNode = heading.clone();
     setTextProps({ node: newHeading, text: generateMasterName(master) });
     newStackFrame.appendChild(newHeading);
 
-    // [3-2] インスタンスの複製
+    // [3-2] インスタンスを複製
     dataList
       .sort((a, b) => {
-        // const comparison = b.text.length - a.text.length;
-        // if (comparison !== 0) return comparison;
-        // if (a.text < b.text) return -1;
-        // if (a.text > b.text) return 1;
+        const comparison = b.text.length - a.text.length;
+        if (comparison !== 0) return comparison;
+        if (a.text < b.text) return -1;
+        if (a.text > b.text) return 1;
         return b.node.width - a.node.width;
       })
       .forEach(instance => {
@@ -82,16 +82,18 @@ async function collectInstances() {
         newStackFrame.appendChild(newLink);
       });
 
+    // [3-3] 複製を格納
     layoutFrame.appendChild(newStackFrame);
-    target.page.appendChild(layoutFrame);
-    console.log('test', generateMasterName(master));
   }
 
-  // [5] 移動
+  // [4] 素材を削除
   stackFrame.remove();
   heading.remove();
   link.remove();
+
+  // [5] 結果に移動
   figma.currentPage = target.page;
+  console.log('test', 'Component count:', instanceCatalog.map.size, 'Scoped:', target.selection.length);
 }
 
 figma.on('run', async () => {
