@@ -1,5 +1,6 @@
-export const PAGE_NAME = 'Instances';
+export const PAGE_NAME = 'Instance Collections';
 export const FRAME_NAME = 'Collections';
+
 export const FONT_NAME = { family: 'Roboto', style: 'Medium' };
 
 export const LINK_COLOR: ReadonlyArray<Paint> = [{ type: 'SOLID', color: { r: 0 / 255, g: 100 / 255, b: 200 / 255 } }];

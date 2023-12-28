@@ -1,16 +1,14 @@
-import { ElementProps } from "../types";
+import { ExistingFrame } from "../types";
 
-export function findFrame(props: ElementProps, init: boolean): FrameNode | null {
-  const { parent, name } = props;
-  const foundFrame = parent
-    ? parent.children.find(child => child.name === name && child.type === 'FRAME') as FrameNode
-    : null;
+export function findFrame(props: ExistingFrame): FrameNode | null {
+  const { name, parent, init } = props;
+  const isExisting = (node: SceneNode): boolean => node.name === name && node.type === 'FRAME';
 
-  if (foundFrame && init) {
-    while (foundFrame.children.length > 0) {
-      foundFrame.children[0].remove();
-    }
+  if (init) {
+    parent.findChildren(isExisting);
+    return null;
   }
 
-  return foundFrame || null;
+  const child = parent.findChild(isExisting) as FrameNode;
+  return child || null;
 }

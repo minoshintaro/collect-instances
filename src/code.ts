@@ -1,6 +1,5 @@
-import { ElementProps, InstanceCatalog, InstanceData } from "./types";
+import { Target, CreationProps, InstanceCatalog, InstanceData } from "./types";
 import { PAGE_NAME, FRAME_NAME, FONT_NAME, LINK_COLOR, LIGHT_GRAY, BLACK, WHITE } from "./settings";
-import { createClone } from "./features/createClone";
 import { createElement } from "./features/createElement";
 import { createPage } from "./features/createPage";
 import { findFrame } from "./features/findFrame";
@@ -8,47 +7,61 @@ import { findPage } from "./features/findPage";
 import { generateInstanceCatalog } from "./features/generateInstanceCatalog";
 import { generateMasterName } from "./features/generateMasterName";
 import { getMasterComponents } from "./features/getMasterComponents";
+import { setTextProps } from "./features/setTextProps";
 import { sortComponentsByName } from "./features/sortByName";
 
 async function collectInstances() {
-  // [1] 配置先の生成
-  const targetPage: PageNode = findPage(PAGE_NAME) || createPage(PAGE_NAME);
-  const selectedComponents: ComponentNode[] = getMasterComponents(figma.currentPage.selection);
+  // [0] 設定
+  const target: Target = {
+    page: findPage(PAGE_NAME) || createPage(PAGE_NAME),
+    selection: getMasterComponents([...figma.currentPage.selection]),
+    nodes: [...figma.currentPage.children]
+  }
 
-  const layoutFrameProps: ElementProps = {
-    name: FRAME_NAME,
-    parent: targetPage,
-    layout: { flow: 'WRAP', gap: [200], maxW: 99999 }
-  };
-  const layoutFrame: FrameNode = findFrame(layoutFrameProps, !selectedComponents.length) || createElement(layoutFrameProps);
+  const creation: CreationProps = {
+    layoutFrame: {
+      name: FRAME_NAME,
+      layout: { flow: 'WRAP', gap: [200], maxW: 99999 } // 保留 maxW
+    },
+    stackFrame: {
+      name: 'Stack',
+      layout: { flow: 'COL', gap: [20], minW: 360 } // 保留 minW
+    },
+    heading: {
+      name: 'Heading',
+      text: { value: 'Component Name' },
+      layout: { flow: 'COL', padding: [4, 24] },
+      theme: { fontSize: 24, fill: [BLACK, WHITE], radius: 9999 }
+    },
+    link: {
+      name: 'Link',
+      text: { value: 'Link' },
+      layout: { flow: 'COL', padding: [4, 14] },
+      theme: { fontSize: 14, fill: [LIGHT_GRAY, LINK_COLOR], radius: 9999 }
+    }
+  }
+
+  // [1] 素材の準備
+  const layoutFrame: FrameNode = findFrame({ name: FRAME_NAME, parent: target.page, init: !target.selection.length}) || createElement(creation.layoutFrame);
+  const stackFrame: FrameNode = createElement(creation.stackFrame);
+  const heading: FrameNode = createElement(creation.heading);
+  const link: FrameNode = createElement(creation.link);
 
   // [2] インスタンスの収集
-  const instanceCatalog: InstanceCatalog = generateInstanceCatalog({
-    targets: figma.currentPage.children,
-    scopes: selectedComponents
-  });
+  const instanceCatalog: InstanceCatalog = generateInstanceCatalog(target);
 
-  console.log('test', 'Component count:', instanceCatalog.map.size, 'Scoped:', selectedComponents.length);
+  console.log('test', 'Component count:', instanceCatalog.map.size, 'Scoped:', target.selection.length);
 
   // [3] マスターコンポーネント毎に処理
   const orderedMasters: ComponentNode[] = sortComponentsByName([...instanceCatalog.map.keys()]);
   for (const master of orderedMasters) {
-    const dataList = instanceCatalog.map.get(master) || null;
-    if (!dataList) continue;
+    const dataList: InstanceData[] = instanceCatalog.map.get(master) || [];
 
-    // [3-1] 配置先の生成
-    const stackFrame: FrameNode = createElement({
-      name: 'Stack',
-      parent: layoutFrame,
-      layout: { flow: 'COL', gap: [20], minW: 360 }
-    });
-    const heading: FrameNode = createElement({
-      name: 'Heading',
-      parent: stackFrame,
-      text: { value: generateMasterName(master) },
-      layout: { flow: 'COL', padding: [4, 24] },
-      theme: { fontSize: 24, fill: [BLACK, WHITE], radius: 9999 }
-    });
+    // [3-1] 要素の複製
+    const newStackFrame: FrameNode = stackFrame.clone();
+    const newHeading: FrameNode = heading.clone();
+    setTextProps({ node: newHeading, text: generateMasterName(master) });
+    newStackFrame.appendChild(newHeading);
 
     // [3-2] インスタンスの複製
     dataList
@@ -60,74 +73,25 @@ async function collectInstances() {
         return b.node.width - a.node.width;
       })
       .forEach(instance => {
-        const cloneNode = createClone({
-          node: instance.node,
-          parent: stackFrame
-        });
-        const linkNode = createElement({
-          name: 'Link',
-          parent: stackFrame,
-          text: { value: instance.location.name, link: instance.node },
-          layout: { flow: 'COL', padding: [4, 14] },
-          theme: { fontSize: 14, fill: [LIGHT_GRAY, LINK_COLOR], radius: 9999 }
-        });
+        const newInstance = instance.node.clone();
+        newInstance.layoutPositioning = 'AUTO';
+        newStackFrame.appendChild(newInstance);
+
+        const newLink = link.clone();
+        setTextProps({ node: newLink, text: instance.location.name, link: instance.node });
+        newStackFrame.appendChild(newLink);
       });
 
+    layoutFrame.appendChild(newStackFrame);
+    target.page.appendChild(layoutFrame);
     console.log('test', generateMasterName(master));
   }
 
-
-
-  // for (const collection of collectionMap) {
-  //   const masterComponent: ComponentNode | null = collection[0];
-  //   const instances: InstanceData[] = collection[1]
-//
-  //   // [3-1] 格納先の生成
-  //   const masterName: string = masterComponent ? generateMasterName(masterComponent) : 'Unkown';
-  //   const stackFrame: FrameNode = createElement({
-  //     name: masterName,
-  //     parent: layoutFrame,
-  //     layout: { flow: 'COL', gap: [20], minW: 360 }
-  //   });
-  //   const heading: FrameNode = createElement({
-  //     name: 'Heading',
-  //     parent: stackFrame,
-  //     text: { value: masterName },
-  //     layout: { flow: 'COL', padding: [4, 24] },
-  //     theme: { fontSize: 24, fill: [BLACK, WHITE], radius: 9999 }
-  //   });
-//
-  //   // [3-2] 並び替え、展開
-  //   instances
-  //     .sort((a, b) => {
-  //       if (a.text < b.text) return -1;
-  //       if (a.text > b.text) return 1;
-  //       return b.node.width - a.node.width;
-  //     })
-  //     .forEach(instance => {
-  //       const cloneNode = createClone({
-  //         parent: stackFrame,
-  //         node: instance.node
-  //       });
-  //       const linkNode = createElement({
-  //         name: 'Link',
-  //         parent: stackFrame,
-  //         text: { value: instance.location.name, link: instance.node },
-  //         layout: { flow: 'COL', padding: [4, 14] },
-  //         theme: { fontSize: 14, fill: [LIGHT_GRAY, LINK_COLOR], radius: 9999 }
-  //       });
-  //     });
-  //   // count = count + instances.length;
-  // }
-  // console.log('test', count);
-
-  // [4] コンポーネント名で並び替え
-  // [...layoutFrame.children]
-  //   .sort((a, b) => a.name.localeCompare(b.name))
-  //   .forEach(frame => layoutFrame.appendChild(frame));
-
   // [5] 移動
-  figma.currentPage = targetPage;
+  stackFrame.remove();
+  heading.remove();
+  link.remove();
+  figma.currentPage = target.page;
 }
 
 figma.on('run', async () => {

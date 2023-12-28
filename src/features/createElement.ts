@@ -3,10 +3,13 @@ import { FONT_NAME, BLACK } from "../settings";
 
 function generateFlow(input: string): AutoLayoutMixin['layoutMode'] {
   switch(input) {
-    case 'COL': return 'VERTICAL';
+    case 'COL':
+      return 'VERTICAL';
     case 'ROW':
-    case 'WRAP': return 'HORIZONTAL';
-    default: return 'NONE';
+    case 'WRAP':
+      return 'HORIZONTAL';
+    default:
+      return 'NONE';
   }
 }
 
@@ -37,8 +40,7 @@ export function createElement(props: ElementProps): FrameNode {
       newFrame.itemSpacing = gap[0];
       newFrame.counterAxisSpacing = gap[1] || null;
     }
-    if (padding) {
-      // [t: 0, r: 1, b: 2, l: 3][tb: 0,lr: 1][trbl: 0]
+    if (padding) { // [t: 0, r: 1, b: 2, l: 3][tb: 0,lr: 1][trbl: 0]
       newFrame.paddingTop = padding[0];
       newFrame.paddingRight = padding[1] || padding[0];
       newFrame.paddingBottom = padding[2] || padding[0];

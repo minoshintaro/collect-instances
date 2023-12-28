@@ -1,13 +1,13 @@
-import { InstanceCatalog, InstanceCatalogProps, InstanceData } from "../types";
+import { Target, InstanceCatalog, InstanceData } from "../types";
 import { getFirstNode } from "./getFirstNode";
 import { getInnerText } from "./getInnerText";
 
-export function generateInstanceCatalog(props: InstanceCatalogProps): InstanceCatalog {
-  const { targets, scopes } = props;
+export function generateInstanceCatalog(props: Target): InstanceCatalog {
+  const { nodes, selection } = props;
   const map: InstanceCatalog['map'] = new Map();
   const unknown: InstanceCatalog['unknown'] = [];
 
-  let targetNodes: SceneNode[] = [...targets];
+  let targetNodes: SceneNode[] = nodes;
   let subNodes: SceneNode[] = [];
 
   while (targetNodes.length > 0) {
@@ -22,7 +22,7 @@ export function generateInstanceCatalog(props: InstanceCatalogProps): InstanceCa
           break;
         }
         case 'INSTANCE': {
-          if (scopes.length && node.mainComponent && !scopes.includes(node.mainComponent)) break;
+          if (selection.length && node.mainComponent && !selection.includes(node.mainComponent)) break;
 
           const masterComponent: ComponentNode | null = node.mainComponent;
           const instanceData: InstanceData = {

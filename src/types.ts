@@ -1,32 +1,14 @@
-export type HasChildren =
-  | BooleanOperationNode
-  | ComponentNode
-  | ComponentSetNode
-  | FrameNode
-  | GroupNode
-  | InstanceNode
-  | PageNode
-  | SectionNode;
-
-export interface InstanceCatalogProps {
-  targets: readonly SceneNode[];
-  scopes: ComponentNode[];
+export interface Target {
+  page: PageNode;
+  selection: ComponentNode[];
+  nodes: SceneNode[];
 }
 
-export interface InstanceData {
-  node: InstanceNode;
-  text: string;
-  location: SceneNode;
-}
-
-export type InstanceCatalog = {
-  map: Map<ComponentNode, InstanceData[]>;
-  unknown: InstanceData[];
-}
-
-export interface CloneProps {
-  node: SceneNode;
-  parent?: HasChildren;
+export interface CreationProps {
+  layoutFrame: ElementProps,
+  stackFrame: ElementProps,
+  heading: ElementProps,
+  link: ElementProps
 }
 
 export interface ElementProps {
@@ -49,3 +31,30 @@ export interface ElementProps {
     radius?: CornerMixin['cornerRadius'];
   };
 }
+
+export interface ExistingFrame {
+  name: string,
+  parent: PageNode,
+  init: boolean
+}
+
+export type InstanceCatalog = {
+  map: Map<ComponentNode, InstanceData[]>;
+  unknown: InstanceData[];
+}
+
+export interface InstanceData {
+  node: InstanceNode;
+  text: string;
+  location: SceneNode;
+}
+
+export type HasChildren =
+  | BooleanOperationNode
+  | ComponentNode
+  | ComponentSetNode
+  | FrameNode
+  | GroupNode
+  | InstanceNode
+  | PageNode
+  | SectionNode;
