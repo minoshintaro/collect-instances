@@ -37,16 +37,12 @@ export interface ExistingFrame {
   init: boolean
 }
 
-export type InstanceCatalog = {
-  map: Map<ComponentNode, InstanceData[]>;
-  unknown: InstanceData[];
+export interface InstanceCatalog {
+  map: Map<ComponentNode, InstanceGroup>;
+  unknown: Set<InstanceNode>;
 }
 
-export interface InstanceData {
-  node: InstanceNode;
-  text: string;
-  location: SceneNode;
-}
+export type InstanceGroup = Map<string, Set<InstanceNode>>;
 
 export type HasChildren =
   | BooleanOperationNode

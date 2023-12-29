@@ -1,11 +1,10 @@
-import { Target, InstanceCatalog, InstanceData } from "../types";
-import { getFirstNode } from "./getFirstNode";
+import { Target, InstanceCatalog, InstanceGroup } from "../types";
 import { getInnerText } from "./getInnerText";
 
 export function generateInstanceCatalog(props: Target): InstanceCatalog {
   const { nodes, selection } = props;
   const map: InstanceCatalog['map'] = new Map();
-  const unknown: InstanceCatalog['unknown'] = [];
+  const unknown: InstanceCatalog['unknown'] = new Set();
 
   let targetNodes: SceneNode[] = nodes;
   let subNodes: SceneNode[] = [];
@@ -25,18 +24,16 @@ export function generateInstanceCatalog(props: Target): InstanceCatalog {
           if (selection.length && node.mainComponent && !selection.includes(node.mainComponent)) break;
 
           const masterComponent: ComponentNode | null = node.mainComponent;
-          const instanceData: InstanceData = {
-            node: node,
-            text: getInnerText(node),
-            location: getFirstNode(node)
-          };
+          const innerText = getInnerText(node);
 
           if (masterComponent) {
-            const instanceDataList: InstanceData[] = map.get(masterComponent) || [];
-            instanceDataList.push(instanceData);
-            map.set(masterComponent, instanceDataList);
+            const instanceGroup: InstanceGroup = map.get(masterComponent) || new Map();
+            const instanceSet: Set<InstanceNode> = instanceGroup.get(innerText) || new Set();
+            instanceSet.add(node);
+            instanceGroup.set(innerText, instanceSet);
+            map.set(masterComponent, instanceGroup);
           } else {
-            unknown.push(instanceData);
+            unknown.add(node);
           }
           break;
         }
