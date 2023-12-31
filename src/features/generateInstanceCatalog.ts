@@ -1,10 +1,36 @@
-import { Target, InstanceCatalog, InstanceGroup } from "../types";
+import { TargetNode, InstanceCatalog, InstanceIndex, InstanceDataList } from "../types";
 import { getInnerText } from "./getInnerText";
 
-export function generateInstanceCatalog(props: Target): InstanceCatalog {
+interface IndexInput {
+  map: InstanceCatalog['index'];
+  key: string;
+  value: string;
+}
+function setToIndex(input: IndexInput): void {
+  const { map, key, value } = input;
+  const values = map.get(key) || new Set();
+  values.add(value);
+  map.set(key, values);
+}
+
+interface DataInput {
+  map: InstanceCatalog['data'];
+  key: string;
+  value: { id: string, content: string };
+}
+function setToData(input: DataInput): void {
+  const { map, key, value } = input;
+  const values = map.get(key) || [];
+  values.push(value);
+  map.set(key, values);
+}
+
+export function generateInstanceCatalog(props: TargetNode): InstanceCatalog {
   const { nodes, selection } = props;
-  const map: InstanceCatalog['map'] = new Map();
-  const unknown: InstanceCatalog['unknown'] = new Set();
+  const catalog: InstanceCatalog = {
+    index: new Map(),
+    data: new Map()
+  }
 
   let targetNodes: SceneNode[] = nodes;
   let subNodes: SceneNode[] = [];
@@ -21,19 +47,19 @@ export function generateInstanceCatalog(props: Target): InstanceCatalog {
           break;
         }
         case 'INSTANCE': {
-          if (selection.length && node.mainComponent && !selection.includes(node.mainComponent)) break;
+          const component = node.mainComponent;
+          if (component) {
+            // スコープの判定
+            if (selection.length && !selection.includes(component)) break;
 
-          const masterComponent: ComponentNode | null = node.mainComponent;
-          const innerText = getInnerText(node);
-
-          if (masterComponent) {
-            const instanceGroup: InstanceGroup = map.get(masterComponent) || new Map();
-            const instanceSet: Set<InstanceNode> = instanceGroup.get(innerText) || new Set();
-            instanceSet.add(node);
-            instanceGroup.set(innerText, instanceSet);
-            map.set(masterComponent, instanceGroup);
+            // データの登録
+            const masterName = component.parent && component.parent.type === 'COMPONENT_SET' ? component.parent.name : component.name;
+            const data = { id: node.id, content: getInnerText(node) };
+            setToIndex({ map: catalog.index, key: masterName, value: component.id });
+            setToData({ map: catalog.data, key: component.id, value: data });
           } else {
-            unknown.add(node);
+            const data = { id: node.id, content: '' };
+            setToData({ map: catalog.data, key: 'Unknown', value: data });
           }
           break;
         }
@@ -43,5 +69,5 @@ export function generateInstanceCatalog(props: Target): InstanceCatalog {
     targetNodes = subNodes;
     subNodes = [];
   }
-  return { map, unknown };
+  return catalog;
 }

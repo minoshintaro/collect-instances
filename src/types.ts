@@ -1,17 +1,13 @@
-export interface Target {
+export interface TargetNode {
   page: PageNode;
   nodes: SceneNode[];
   selection: ComponentNode[];
 }
 
-export interface CreationProps {
-  layoutFrame: ElementProps,
-  stackFrame: ElementProps,
-  heading: ElementProps,
-  link: ElementProps
+export interface CreationType {
+  [key: string]: ElementProp
 }
-
-export interface ElementProps {
+export interface ElementProp {
   name: string;
   text?: {
     value: string;
@@ -38,11 +34,12 @@ export interface ExistingFrame {
 }
 
 export interface InstanceCatalog {
-  map: Map<ComponentNode, InstanceGroup>;
-  unknown: Set<InstanceNode>;
+  index: Map<string, InstanceIndex>;
+  data: Map<string, InstanceDataList>;
 }
-
-export type InstanceGroup = Map<string, Set<InstanceNode>>;
+export type InstanceIndex = Set<string>;
+export type InstanceDataList = InstanceData[];
+export type InstanceData = { id: string, content: string };
 
 export type HasChildren =
   | BooleanOperationNode

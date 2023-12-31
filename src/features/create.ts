@@ -1,19 +1,13 @@
-import { ElementProps } from "../types";
-import { FONT_NAME, BLACK } from "../settings";
+import { ElementProp } from "../types";
+import { FONT_NAME, BLACK, LAYOUT_MODE } from "../settings";
 
-function generateFlow(input: string): AutoLayoutMixin['layoutMode'] {
-  switch(input) {
-    case 'COL':
-      return 'VERTICAL';
-    case 'ROW':
-    case 'WRAP':
-      return 'HORIZONTAL';
-    default:
-      return 'NONE';
-  }
+export function createPage(name: string): PageNode {
+  const newPage = figma.createPage();
+  newPage.name = name;
+  return newPage;
 }
 
-export function createElement(props: ElementProps): FrameNode {
+export function createElement(props: ElementProp): FrameNode {
   const { name, text, layout, theme } = props;
   const newFrame = figma.createFrame();
 
@@ -29,7 +23,7 @@ export function createElement(props: ElementProps): FrameNode {
     // newFrame.maxWidth = maxW || null;
 
     if (flow) {
-      newFrame.layoutMode = generateFlow(flow);
+      newFrame.layoutMode = LAYOUT_MODE[flow];
       newFrame.layoutWrap = flow === 'WRAP' ? 'WRAP' : 'NO_WRAP';
     }
     if (newFrame.layoutMode !== 'NONE') {
@@ -55,8 +49,12 @@ export function createElement(props: ElementProps): FrameNode {
     newText.fontName = FONT_NAME;
     newText.fontSize = theme && theme.fontSize ? theme.fontSize : 14;
     newText.fills = theme && theme.fill ? theme.fill[1] : BLACK;
-    newText.characters = link ? `\u{2192} ${value}` : value;
-    if (link) newText.hyperlink = { type: "NODE", value: link.id };
+    if (link) {
+      newText.characters = `\u{2192} ${value}`;
+      newText.hyperlink = { type: "NODE", value: link.id };
+    } else {
+      newText.characters = value;
+    }
 
     newFrame.appendChild(newText);
   }

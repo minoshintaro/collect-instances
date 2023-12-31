@@ -3,8 +3,7 @@ interface Options {
   text: string,
   link?: SceneNode
 }
-
-export function setTextProps(options: Options): void {
+export function setToInnerText(options: Options): void {
   const { node, text, link } = options;
   const textNode = node.findChild(child => child.type === 'TEXT') as TextNode;
   textNode.characters = link ? `\u{2192} ${text}` : text;
