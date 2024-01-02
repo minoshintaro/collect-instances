@@ -1,4 +1,4 @@
-import { TargetNode, InstanceCatalog, InstanceIndex, InstanceDataList } from "./types";
+import { TargetNode, MaterialNode, InstanceCatalog, InstanceIndex, InstanceDataList } from "./types";
 import { CREATION, PAGE_NAME, FRAME_NAME, FONT_NAME } from "./settings";
 import { compareWordOrder, stackInstanceIdByContent } from "./features/callback";
 import { createPage, createElement } from "./features/create";
@@ -8,29 +8,32 @@ import { getFirstNode, getMasterComponents } from "./features/get";
 import { setToInnerText } from "./features/set";
 
 async function collectInstances() {
-  // [0] 設定
-  const targets: TargetNode = {
+  // [1] 宣言
+  // [1-1] 処理の対象
+  const target: TargetNode = {
     page: findPage(PAGE_NAME) || createPage(PAGE_NAME),
     nodes: [...figma.currentPage.children],
     selection: getMasterComponents([...figma.currentPage.selection])
   }
 
-  // [1] 素材を準備
-  const layoutFrame: FrameNode = findFrame({ name: FRAME_NAME, parent: targets.page, init: !targets.selection.length}) || createElement(CREATION.layoutFrame);
-  layoutFrame.visible = false;
-  const columnFrame: FrameNode = createElement(CREATION.columnFrame);
-  columnFrame.visible = false;
-  const rowFrame: FrameNode = createElement(CREATION.rowFrame);
-  rowFrame.visible = false;
-  const heading: FrameNode = createElement(CREATION.heading);
-  heading.visible = false;
-  const subHeading: FrameNode = createElement(CREATION.subHeading);
-  subHeading.visible = false;
-  const link: FrameNode = createElement(CREATION.link);
-  link.visible = false;
+  // [1-2] 配置先のフレーム
+  const container: FrameNode = findFrame({ name: FRAME_NAME, parent: target.page, init: !target.selection.length}) || createElement(CREATION.layoutFrame);
+  container.visible = false;
+
+  // [1-3] 複製元のフレーム
+  const material: MaterialNode = {
+    column: createElement(CREATION.columnFrame),
+    row: createElement(CREATION.rowFrame),
+    heading: createElement(CREATION.heading),
+    subHeading: createElement(CREATION.subHeading),
+    link: createElement(CREATION.link)
+  }
+  for (const prop in material) {
+    if (material.hasOwnProperty(prop)) material[prop].visible = false;
+  }
 
   // [2] インスタンスを収集
-  const instanceCatalog: InstanceCatalog = generateInstanceCatalog(targets);
+  const instanceCatalog: InstanceCatalog = generateInstanceCatalog(target);
   console.log('', 'Component:', instanceCatalog.index.size, instanceCatalog);
 
   // [3] マスター名で呼び出し
@@ -44,15 +47,15 @@ async function collectInstances() {
     if (!componentIds) continue;
 
     // [3-1] 配置先、見出し
-    const newStackFrame: FrameNode = columnFrame.clone();
+    const newStackFrame: FrameNode = material.column.clone();
     newStackFrame.name = 'Component';
 
-    const newHeading: FrameNode = heading.clone();
+    const newHeading: FrameNode = material.heading.clone();
     newStackFrame.appendChild(newHeading);
     newHeading.visible = true;
     setToInnerText({ node: newHeading, text: masterName });
 
-    const newRowFrame: FrameNode = rowFrame.clone();
+    const newRowFrame: FrameNode = material.row.clone();
     newStackFrame.appendChild(newRowFrame);
     newRowFrame.visible = true;
 
@@ -63,12 +66,12 @@ async function collectInstances() {
       if (!instanceDataList.length) continue;
 
       // [3-2-1] 配置先、小見出し
-      const newSubStackFrame: FrameNode = columnFrame.clone();
+      const newSubStackFrame: FrameNode = material.column.clone();
       newRowFrame.appendChild(newSubStackFrame);
       newSubStackFrame.visible = true;
 
       if (component.name !== masterName) {
-        const newSubHeading: FrameNode = subHeading.clone();
+        const newSubHeading: FrameNode = material.subHeading.clone();
         newSubStackFrame.appendChild(newSubHeading);
         newSubStackFrame.name = 'Variant';
         newSubHeading.visible = true;
@@ -86,7 +89,7 @@ async function collectInstances() {
           newSubStackFrame.appendChild(clone);
           clone.layoutPositioning = 'AUTO';
 
-          const newLink = link.clone();
+          const newLink = material.link.clone();
           newSubStackFrame.appendChild(newLink);
           newLink.visible = true;
           setToInnerText({ node: newLink, text: getFirstNode(instance).name, link: instance });
@@ -96,24 +99,22 @@ async function collectInstances() {
     }
 
     // [3-3] 複製を格納
-    layoutFrame.appendChild(newStackFrame);
+    container.appendChild(newStackFrame);
     newStackFrame.visible = true;
   }
 
   // [4] 素材を削除
-  columnFrame.remove();
-  rowFrame.remove();
-  heading.remove();
-  subHeading.remove();
-  link.remove();
+  for (const prop in material) {
+    if (material.hasOwnProperty(prop)) material[prop].remove();
+  }
 
   // [5] 結果に移動
-  figma.currentPage = targets.page;
-  figma.viewport.scrollAndZoomIntoView([layoutFrame]);
-  targets.page.appendChild(layoutFrame);
-  layoutFrame.x -= layoutFrame.width / 2;
-  layoutFrame.y -= layoutFrame.height / 2;
-  layoutFrame.visible = true;
+  figma.currentPage = target.page;
+  figma.viewport.scrollAndZoomIntoView([container]);
+  target.page.appendChild(container);
+  container.x -= container.width / 2;
+  container.y -= container.height / 2;
+  container.visible = true;
 
 }
 

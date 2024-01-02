@@ -4,6 +4,10 @@ export interface TargetNode {
   selection: ComponentNode[];
 }
 
+export interface MaterialNode {
+  [key: string]: FrameNode;
+}
+
 export interface CreationType {
   [key: string]: ElementProp
 }
