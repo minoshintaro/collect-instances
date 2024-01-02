@@ -4,8 +4,7 @@ import { compareWordOrder, stackInstanceIdByContent } from "./features/callback"
 import { createPage, createElement } from "./features/create";
 import { findPage, findFrame } from "./features/find";
 import { generateInstanceCatalog } from "./features/generateInstanceCatalog";
-import { getFirstNode } from "./features/getFirstNode";
-import { getMasterComponents } from "./features/getMasterComponents";
+import { getFirstNode, getMasterComponents } from "./features/get";
 import { setToInnerText } from "./features/set";
 
 async function collectInstances() {
@@ -32,6 +31,7 @@ async function collectInstances() {
 
   // [2] インスタンスを収集
   const instanceCatalog: InstanceCatalog = generateInstanceCatalog(targets);
+  console.log('', 'Component:', instanceCatalog.index.size, instanceCatalog);
 
   // [3] マスター名で呼び出し
   const names: string[] = [...instanceCatalog.index.keys()]

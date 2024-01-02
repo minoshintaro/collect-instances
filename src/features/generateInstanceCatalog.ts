@@ -1,5 +1,5 @@
 import { TargetNode, InstanceCatalog, InstanceIndex, InstanceDataList } from "../types";
-import { getInnerText } from "./getInnerText";
+import { getInnerText } from "./get";
 
 interface IndexInput {
   map: InstanceCatalog['index'];
@@ -34,6 +34,7 @@ export function generateInstanceCatalog(props: TargetNode): InstanceCatalog {
 
   let targetNodes: SceneNode[] = nodes;
   let subNodes: SceneNode[] = [];
+  let count: number = 0;
 
   while (targetNodes.length > 0) {
     for (const node of targetNodes) {
@@ -47,7 +48,7 @@ export function generateInstanceCatalog(props: TargetNode): InstanceCatalog {
           break;
         }
         case 'INSTANCE': {
-          const component = node.mainComponent;
+          const component: ComponentNode | null = node.mainComponent;
           if (component) {
             // スコープの判定
             if (selection.length && !selection.includes(component)) break;
@@ -57,6 +58,8 @@ export function generateInstanceCatalog(props: TargetNode): InstanceCatalog {
             const data = { id: node.id, content: getInnerText(node) };
             setToIndex({ map: catalog.index, key: masterName, value: component.id });
             setToData({ map: catalog.data, key: component.id, value: data });
+
+            count += 1;
           } else {
             const data = { id: node.id, content: '' };
             setToData({ map: catalog.data, key: 'Unknown', value: data });
@@ -69,5 +72,6 @@ export function generateInstanceCatalog(props: TargetNode): InstanceCatalog {
     targetNodes = subNodes;
     subNodes = [];
   }
+  console.log('', 'Instance:', count);
   return catalog;
 }

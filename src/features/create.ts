@@ -1,5 +1,6 @@
 import { ElementProp } from "../types";
 import { FONT_NAME, BLACK, LAYOUT_MODE } from "../settings";
+import { setToInnerText } from "./set";
 
 export function createPage(name: string): PageNode {
   const newPage = figma.createPage();
@@ -49,14 +50,14 @@ export function createElement(props: ElementProp): FrameNode {
     newText.fontName = FONT_NAME;
     newText.fontSize = theme && theme.fontSize ? theme.fontSize : 14;
     newText.fills = theme && theme.fill ? theme.fill[1] : BLACK;
-    if (link) {
-      newText.characters = `\u{2192} ${value}`;
-      newText.hyperlink = { type: "NODE", value: link.id };
-    } else {
-      newText.characters = value;
-    }
-
+    // if (link) {
+    //   newText.characters = `\u{2192} ${value}`;
+    //   newText.hyperlink = { type: "NODE", value: link.id };
+    // } else {
+    //   newText.characters = value;
+    // }
     newFrame.appendChild(newText);
+    setToInnerText({ node: newFrame, text: value, link: link });
   }
 
   return newFrame;

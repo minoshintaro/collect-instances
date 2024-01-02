@@ -1,6 +1,6 @@
 import { CreationType } from "./types";
 
-export const PAGE_NAME = 'Instance Collections';
+export const PAGE_NAME = `\u{1F50D} Instance Collections`;
 export const FRAME_NAME = 'Collections';
 
 export const FONT_NAME = { family: 'Roboto', style: 'Medium' };
