@@ -1,4 +1,38 @@
-import { HasChildren } from "../types";
+export function getMasterComponentSet(selection: SceneNode[]): Set<ComponentNode> {
+  const componentSet = new Set<ComponentNode>();
+  for (const node of selection) {
+    switch (node.type) {
+      case 'INSTANCE': {
+        if (node.mainComponent) componentSet.add(node.mainComponent);
+        break;
+      }
+      case 'COMPONENT_SET': {
+        node
+          .findChildren(child => child.type === 'COMPONENT')
+          .forEach(child => componentSet.add(child as ComponentNode));
+        break;
+      }
+      case 'COMPONENT': {
+        componentSet.add(node);
+        break;
+      }
+      default: break;
+    }
+  }
+  return componentSet;
+}
+
+export function getMasterName(node: ComponentNode): string {
+  return node.parent && node.parent.type === 'COMPONENT_SET' ? node.parent.name : node.name;
+}
+
+export function getInnerText(input: InstanceNode): string {
+  let result = '';
+  input
+    .findAllWithCriteria({ types: ['TEXT'] })
+    .forEach(node => result += node.characters + ' ');
+  return result.trim();
+}
 
 export function getFirstNode(node: SceneNode): SceneNode {
   let current = node;
@@ -9,27 +43,4 @@ export function getFirstNode(node: SceneNode): SceneNode {
       current = current.parent;
   }
   return current;
-}
-
-export function getInnerText(node: HasChildren): string {
-  return node
-    .findAllWithCriteria({ types: ['TEXT'] })
-    .filter(node => node.visible)
-    .map(node => node.characters)
-    .join(' ');
-}
-
-export function getMasterComponents(nodes: SceneNode[]): ComponentNode[] {
-  return nodes.flatMap(node => {
-    switch (node.type) {
-      case 'INSTANCE':
-        return node.mainComponent ? [node.mainComponent] : [];
-      case 'COMPONENT_SET':
-        return node.findChildren(child => child.type === 'COMPONENT') as ComponentNode[];
-      case 'COMPONENT':
-        return [node];
-      default:
-        return [];
-    }
-  });
 }

@@ -13,3 +13,21 @@ export function setToInnerText(options: Options): void {
     textNode.characters = text;
   }
 }
+
+interface LayoutOptions {
+  heading?: FrameNode;
+  text?: string;
+  parent?: FrameNode;
+  visible?: boolean;
+}
+export function setLayout(input: FrameNode, options: LayoutOptions): void {
+  const { heading, text, parent, visible } = options;
+  if (heading && text) {
+    input.appendChild(heading);
+    heading.visible = true;
+    setToInnerText({ node: heading, text });
+  }
+
+  if (visible) input.visible = true;
+  if (parent) parent.appendChild(input);
+}

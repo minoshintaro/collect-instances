@@ -11,15 +11,15 @@ export const BLACK: ReadonlyArray<Paint> = [{ type: 'SOLID', color: { r: 0, g: 0
 export const WHITE: ReadonlyArray<Paint> = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
 
 export const CREATION: CreationType = {
-  layoutFrame: {
+  container: {
     name: FRAME_NAME,
     layout: { flow: 'WRAP', gap: [200], maxW: 99999 } // 保留 maxW
   },
-  columnFrame: {
+  column: {
     name: 'Column',
     layout: { flow: 'COL', gap: [20] }
   },
-  rowFrame: {
+  row: {
     name: 'Row',
     layout: { flow: 'ROW', gap: [100] }
   },

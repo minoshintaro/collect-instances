@@ -1,7 +1,7 @@
 export interface TargetNode {
   page: PageNode;
   nodes: SceneNode[];
-  selection: ComponentNode[];
+  selection: Set<ComponentNode>;
 }
 
 export interface MaterialNode {
@@ -31,19 +31,10 @@ export interface ElementProp {
   };
 }
 
-export interface ExistingFrame {
-  name: string,
-  parent: PageNode,
-  init: boolean
-}
-
-export interface InstanceCatalog {
-  index: Map<string, InstanceIndex>;
-  data: Map<string, InstanceDataList>;
-}
-export type InstanceIndex = Set<string>;
-export type InstanceDataList = InstanceData[];
-export type InstanceData = { id: string, content: string };
+export type MasterNameMap = Map<string, ComponentIdMap>;
+export type ComponentIdMap = Map<string, ContentMap>;
+export type ContentMap = Map<string, InstanceIdSet>;
+export type InstanceIdSet = Set<string>;
 
 export type HasChildren =
   | BooleanOperationNode

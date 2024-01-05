@@ -13,6 +13,7 @@ export function createElement(props: ElementProp): FrameNode {
   const newFrame = figma.createFrame();
 
   newFrame.name = name;
+  newFrame.visible = false;
   newFrame.clipsContent = false;
   newFrame.fills = theme && theme.fill ? theme.fill[0] : [];
   newFrame.cornerRadius = theme && theme.radius ? theme.radius : 0;
@@ -35,7 +36,7 @@ export function createElement(props: ElementProp): FrameNode {
       newFrame.itemSpacing = gap[0];
       newFrame.counterAxisSpacing = gap[1] || null;
     }
-    if (padding) { // [t: 0, r: 1, b: 2, l: 3][tb: 0,lr: 1][trbl: 0]
+    if (padding) { // [t: 0, r: 1, b: 2, l: 3][tb: 0, lr: 1][trbl: 0]
       newFrame.paddingTop = padding[0];
       newFrame.paddingRight = padding[1] || padding[0];
       newFrame.paddingBottom = padding[2] || padding[0];
@@ -46,16 +47,10 @@ export function createElement(props: ElementProp): FrameNode {
   if (text) {
     const { value, link } = text;
     const newText = figma.createText();
-
     newText.fontName = FONT_NAME;
     newText.fontSize = theme && theme.fontSize ? theme.fontSize : 14;
     newText.fills = theme && theme.fill ? theme.fill[1] : BLACK;
-    // if (link) {
-    //   newText.characters = `\u{2192} ${value}`;
-    //   newText.hyperlink = { type: "NODE", value: link.id };
-    // } else {
-    //   newText.characters = value;
-    // }
+
     newFrame.appendChild(newText);
     setToInnerText({ node: newFrame, text: value, link: link });
   }
