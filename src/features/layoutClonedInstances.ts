@@ -2,7 +2,8 @@ import { MasterNameMap, MaterialNode, ComponentIdMap, ContentMap } from "../type
 import { CREATION } from "../settings";
 import { compareWordOrder } from "./callback";
 import { createElement } from "./createNode";
-import { setLayout } from "./set";
+import { getFirstNode } from "./get";
+import { setToInnerText, setLayout } from "./set";
 
 // findExistingFrame(target.page, !target.selection.size) ||
 
@@ -60,7 +61,7 @@ export async function layoutClonedInstances(options: Options): Promise<void> {
 
       // [3] 配置先：スタック
       const stackLayout: FrameNode = material.column.clone(); // hidden
-      if (variant.name !== name) setLayout(stackLayout, { heading: material.heading.clone(), text: variant.name });
+      if (variant.name !== name) setLayout(stackLayout, { heading: material.subHeading.clone(), text: variant.name });
 
       // [4] インスタンスの複製
       instanceIds.forEach(id => {
@@ -68,8 +69,12 @@ export async function layoutClonedInstances(options: Options): Promise<void> {
         if (node && node.type === 'INSTANCE') {
           const unitLayout = material.column.clone();
           const clone = node.clone();
+          const link = material.link.clone();
+          setToInnerText({ node: link, text: getFirstNode(node).name, link: node });
           unitLayout.appendChild(clone);
+          unitLayout.appendChild(link);
           stackLayout.appendChild(unitLayout);
+          link.visible = true;
           unitLayout.visible = true;
         }
       });

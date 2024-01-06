@@ -1,9 +1,8 @@
 import { MasterNameMap } from "../types";
-import { getMasterComponentSet, getMasterName, getInnerText } from "./get";
+import { getMasterName, getInnerText } from "./get";
 
-export async function createInstanceCatalog(current: PageNode): Promise<MasterNameMap> {
+export async function createInstanceCatalog(current: PageNode, scope: Set<ComponentNode>): Promise<MasterNameMap> {
   const catalog: MasterNameMap = new Map();
-  const scope: Set<ComponentNode> = getMasterComponentSet([...current.selection]);
   let targetNodes: SceneNode[] = [...current.children];
   let subNodes: SceneNode[] = [];
 
