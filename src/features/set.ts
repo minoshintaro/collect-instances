@@ -1,33 +1,18 @@
-interface Options {
-  node: FrameNode,
-  text: string,
-  link?: SceneNode
-}
-export function setToInnerText(options: Options): void {
-  const { node, text, link } = options;
-  const textNode = node.findChild(child => child.type === 'TEXT') as TextNode;
-  if (link) {
-    textNode.characters = `${text} \u{2192}`;
-    textNode.hyperlink = { type: "NODE", value: link.id };
-  } else {
-    textNode.characters = text;
-  }
-}
-
-interface LayoutOptions {
-  heading?: FrameNode;
+interface InnerText {
+  name?: string;
   text?: string;
-  parent?: FrameNode;
+  link?: SceneNode;
+  size?: number;
   visible?: boolean;
 }
-export function setLayout(input: FrameNode, options: LayoutOptions): void {
-  const { heading, text, parent, visible } = options;
-  if (heading && text) {
-    input.appendChild(heading);
-    heading.visible = true;
-    setToInnerText({ node: heading, text });
+export function setInnerText(target: FrameNode, options: InnerText): void {
+  const { name, text, link, size } = options;
+  const textNodes = target.findAllWithCriteria({ types: ['TEXT'] });
+  const textValue = link ? `${text} \u{2192}` : text;
+  if (textNodes) {
+    if (name) textNodes[0].name = name;
+    if (text) textNodes[0].characters = link ? `${text} \u{2192}` : text;
+    if (link) textNodes[0].hyperlink = { type: "NODE", value: link.id };
+    if (size) textNodes[0].fontSize = size;
   }
-
-  if (visible) input.visible = true;
-  if (parent) parent.appendChild(input);
 }

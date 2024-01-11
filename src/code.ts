@@ -1,58 +1,51 @@
-import { MasterNameMap } from "./types";
-import { CREATION, PAGE_NAME, FRAME_NAME, FONT_NAME } from "./settings";
+import { NodeGroup, MasterNameMap } from "./types";
+import { RESULT_NAME, FONT_NAME } from "./settings";
 import { createInstanceCatalog } from "./features/createInstanceCatalog";
-import { createPage, createElement } from "./features/createNode";
-import { findPage, findFrame } from "./features/find";
-import { generateComponentSet } from "./features/generateSet";
+import { createPage } from "./features/createNode";
+import { findPage } from "./features/find";
+import { generateResultContainer } from "./features/GenerateFrame";
+import { getNodesOnPage, getTime } from "./features/get";
 import { layoutClonedInstances } from "./features/layoutClonedInstances";
+import { countInstances } from "./features/utilities";
 
 let start = new Date();
 let end = new Date();
 
 figma.on('run', async () => {
   try {
-    start = new Date();
-
     // [0] 中断の是非
-    if (figma.currentPage.name === PAGE_NAME) {
+    if (figma.currentPage.name === RESULT_NAME.page) {
       figma.closePlugin('Not Here');
       return;
     }
 
     // [1] 事前処理
-    figma.notify('Doing...', { timeout: 1000 });
     figma.skipInvisibleInstanceChildren = true;
-    await new Promise(resolve => setTimeout(resolve, 500));
+    figma.notify('Collecting...', { timeout: 800 });
+    await new Promise(resolve => setTimeout(resolve, 400)); // 通知待ち用
+    await figma.loadFontAsync(FONT_NAME);
 
-    // [2] ノードの宣言
-    const target: PageNode = findPage(PAGE_NAME) || createPage(PAGE_NAME);
-    const scope: Set<ComponentNode> = generateComponentSet(figma.currentPage.selection);
-    const container: FrameNode = findFrame({ name: FRAME_NAME, page: target, init: !scope.size }) || createElement(CREATION.container);
+    // [2] データの準備
+    let nodes: NodeGroup | null = getNodesOnPage(figma.currentPage);
+    let data: MasterNameMap | null = createInstanceCatalog(nodes);
 
-    // [3] データの準備
-    const data = await Promise.all([
-      createInstanceCatalog(figma.currentPage, scope),
-      figma.loadFontAsync(FONT_NAME)
-    ]);
-    const instanceCatalog: MasterNameMap = data[0];
+    // console.log('Time:', getTime(start, new Date()), data);
 
-    // [4] データの処理
-    await layoutClonedInstances({
-      page: target,
-      frame: container,
-      data: instanceCatalog
-    });
+    // [3] データの処理
+    const targetPage: PageNode = findPage(RESULT_NAME.page) || createPage(RESULT_NAME.page);
+    const container: FrameNode = generateResultContainer(targetPage, nodes.selection.length ? 'partial' : 'full');
+    await layoutClonedInstances({ page: targetPage, frame: container, data });
 
-    // [5] 結果
-    figma.currentPage = target;
+    // [4] 結果
+    figma.currentPage = targetPage;
     figma.viewport.scrollAndZoomIntoView([container]);
     container.visible = true;
+    const count = countInstances(data);
+    // console.log('Time:', getTime(start, new Date()));
 
-    end = new Date();
-    console.log('Time:', `${end.getTime() - start.getTime()}ms`, instanceCatalog);
-
-    // [6] 完了
-    figma.closePlugin('Done')
+    nodes = null;
+    data = null;
+    figma.closePlugin(`Collected ${count} instances`);
   } catch (error) {
     figma.closePlugin(`${error instanceof Error ? error.message : 'Error'}`);
   }

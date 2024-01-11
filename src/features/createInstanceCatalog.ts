@@ -1,51 +1,44 @@
 import { MasterNameMap } from "../types";
-import { getMasterName, getInnerText } from "./get";
+import { generateComponentIdSet } from "./generateSet";
+import { getWrapperNode, getMasterName, getInnerText } from "./get";
+import { cutText } from "./utilities";
 
-export async function createInstanceCatalog(current: PageNode, scope: Set<ComponentNode>): Promise<MasterNameMap> {
-  const catalog: MasterNameMap = new Map();
-  let targetNodes: SceneNode[] = [...current.children];
-  let subNodes: SceneNode[] = [];
+interface Input {
+  instance: InstanceNode[];
+  selection: SceneNode[];
+}
+export function createInstanceCatalog(input: Input): MasterNameMap {
+  const targetIds: Set<string> = generateComponentIdSet(input.selection);
+  const map: MasterNameMap = new Map();
+  for (const instance of input.instance) {
+    if (!instance.visible) continue;
 
-  while (targetNodes.length > 0) {
-    for (const node of targetNodes) {
-      switch (node.type) {
-        case 'FRAME':
-        case 'GROUP':
-        case 'SECTION': {
-          subNodes.push(...node.children);
-          break;
-        }
-        case 'INSTANCE': {
-          const component: ComponentNode | null = node.mainComponent;
-          if (component) {
-            // スコープの判定
-            if (scope.size && !scope.has(component)) break;
+    const component = instance.mainComponent;
+    if (!component || (input.selection.length && !targetIds.has(component.id))) continue;
 
-            // キー
-            const masterName = getMasterName(component);
-            const content = getInnerText(node);
+    const wrapper = getWrapperNode(instance);
+    if (!wrapper) continue;
 
-            // バリュー
-            const componentIdMap = catalog.get(masterName) || new Map();
-            const contentMap = componentIdMap.get(component.id) || new Map();
-            const instanceIdSet = contentMap.get(content) || new Set();
+    // キー
+    const masterName: string = getMasterName(component);
+    const content = getInnerText(instance);
+    // const content = cutText(getInnerText(instance), 50);
 
-            // セット
-            instanceIdSet.add(node.id);
-            contentMap.set(content, instanceIdSet);
-            componentIdMap.set(component.id, contentMap);
-            catalog.set(masterName, componentIdMap);
-          }
-          // } else {
-          //   const instanceIdSet = catalog.get('Unknown') || new Set();
-          // }
-          break;
-        }
-        default: break;
-      }
-    }
-    targetNodes = subNodes;
-    subNodes = [];
+    // バリュー
+    // MaseterName, Component Id
+    // └ Component Id, Content
+    // 　└ Content, Insrance Id
+    // 　　└ Instance Id, Props
+    const componentIdMap = map.get(masterName) || new Map();
+    const contentMap = componentIdMap.get(component.id) || new Map();
+    const instanceIdMap = contentMap.get(content) || new Map();
+    const props = { location: wrapper.name };
+
+    // セット
+    instanceIdMap.set(instance.id, props);
+    contentMap.set(content, instanceIdMap);
+    componentIdMap.set(component.id, contentMap);
+    map.set(masterName, componentIdMap);
   }
-  return catalog;
+  return map;
 }

@@ -1,6 +1,6 @@
 import { ElementProp } from "../types";
 import { FONT_NAME, BLACK, LAYOUT_MODE } from "../settings";
-import { setToInnerText } from "./set";
+import { setInnerText } from "./set";
 
 export function createPage(name: string): PageNode {
   const newPage = figma.createPage();
@@ -19,7 +19,7 @@ export function createElement(props: ElementProp): FrameNode {
   newFrame.cornerRadius = theme && theme.radius ? theme.radius : 0;
 
   if (layout) {
-    const { flow, gap, padding, minW, maxW } = layout;
+    const { flow, gap, padding } = layout;
 
     // newFrame.minWidth = minW || null;
     // newFrame.maxWidth = maxW || null;
@@ -52,7 +52,7 @@ export function createElement(props: ElementProp): FrameNode {
     newText.fills = theme && theme.fill ? theme.fill[1] : BLACK;
 
     newFrame.appendChild(newText);
-    setToInnerText({ node: newFrame, text: value, link: link });
+    setInnerText(newFrame, { text: value, link: link });
   }
 
   return newFrame;

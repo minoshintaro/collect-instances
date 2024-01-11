@@ -1,7 +1,14 @@
-export interface TargetNode {
-  page: PageNode;
-  nodes: SceneNode[];
-  selection: Set<ComponentNode>;
+export interface ResultName {
+  page: string;
+  frame: {
+    full: string;
+    partial: string;
+  };
+}
+
+export interface NodeGroup {
+  instance: InstanceNode[];
+  selection: SceneNode[];
 }
 
 export interface MaterialNode {
@@ -21,8 +28,8 @@ export interface ElementProp {
     flow?: 'ROW' | 'COL' | 'WRAP';
     gap?: number[];
     padding?: number[];
-    minW?: number;
-    maxW?: number;
+    // minW?: number;
+    // maxW?: number;
   };
   theme?: {
     fontSize?: number;
@@ -33,10 +40,13 @@ export interface ElementProp {
 
 export type MasterNameMap = Map<string, ComponentIdMap>;
 export type ComponentIdMap = Map<string, ContentMap>;
-export type ContentMap = Map<string, InstanceIdSet>;
-export type InstanceIdSet = Set<string>;
+export type ContentMap = Map<string, InstanceIdMap>;
+export type InstanceIdMap = Map<string, InstanceProp>;
+export interface InstanceProp {
+  location: string;
+}
 
-export type HasChildren =
+export type ContainerNode =
   | BooleanOperationNode
   | ComponentNode
   | ComponentSetNode

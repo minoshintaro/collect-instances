@@ -1,25 +1,31 @@
-export function generateComponentSet(selection: readonly SceneNode[]): Set<ComponentNode> {
-  const set = new Set<ComponentNode>();
-  function addValue(node: ComponentNode): void {
-    if (!set.has(node)) set.add(node);
+export function generateComponentIdSet(nodes: SceneNode[]): Set<string> {
+  const set = new Set<string>();
+
+  let targets = nodes;
+  while (targets.length > 0) {
+    let subNodes: SceneNode[] = [];
+    targets.forEach(node => {
+      switch (node.type) {
+        case 'INSTANCE':
+          if (node.mainComponent) set.add(node.mainComponent.id);
+          break;
+        case 'COMPONENT':
+          set.add(node.id);
+          break;
+        case 'COMPONENT_SET':
+          node
+            .findChildren(child => child.type === 'COMPONENT')
+            .forEach(component => set.add(component.id));
+          break;
+        case 'BOOLEAN_OPERATION':
+          break;
+        default:
+          if ('children' in node) subNodes = [...subNodes, ...node.children];
+          break;
+      }
+    });
+    targets = subNodes;
   }
-  for (const node of selection) {
-    switch (node.type) {
-      case 'INSTANCE': {
-        if (node.mainComponent) addValue(node.mainComponent);
-        break;
-      }
-      case 'COMPONENT_SET': {
-        const children = node.findChildren(child => child.type === 'COMPONENT') as ComponentNode[];
-        children.forEach(child => addValue(child));
-        break;
-      }
-      case 'COMPONENT': {
-        addValue(node);
-        break;
-      }
-      default: break;
-    }
-  }
+
   return set;
 }

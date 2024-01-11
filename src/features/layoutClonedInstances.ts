@@ -1,12 +1,16 @@
-import { MasterNameMap, MaterialNode, ComponentIdMap, ContentMap } from "../types";
+import { MasterNameMap, MaterialNode } from "../types";
 import { CREATION } from "../settings";
-import { compareWordOrder } from "./callback";
+import { compareWordOrder } from "./utilities";
 import { createElement } from "./createNode";
-import { getFirstNode } from "./get";
-import { setToInnerText, setLayout } from "./set";
+import { setInnerText } from "./set";
 
-// findExistingFrame(target.page, !target.selection.size) ||
-
+// ■データ
+// MasterNameMap = ['Button', ['ID', ...]]
+// ComponentIdMap = ['ID', ['Lorem ipsum', ...]]
+// ContentMap = ['Lorem ipsum', ['id', ...]]
+// InstanceIdMap = ['id', { prop: value }]
+//
+// ■レイアウト
 // [1] container →
 // └ [2] section ↓
 // 　└ h2
@@ -26,96 +30,97 @@ export async function layoutClonedInstances(options: Options): Promise<void> {
   const { page, frame, data } = options;
 
   // [0] 複製元を生成
-  const material: MaterialNode = {
+  let material: MaterialNode | null = {
     column: createElement(CREATION.column),
     row: createElement(CREATION.row),
     heading: createElement(CREATION.heading),
-    subHeading: createElement(CREATION.subHeading),
     link: createElement(CREATION.link)
   }
 
-  // [1] 配置先：コンテナ
-  const containerLayout: FrameNode = frame; // hidden
+  const newSection = material.column.clone();
+  const newSectionHeading = material.heading.clone();
+  newSection.appendChild(newSectionHeading);
+  newSectionHeading.visible = true;
+  material.section = newSection;
 
-   // コンポーネント名毎に繰返し
-  const names: string[] = [...data.keys()].sort(compareWordOrder).reverse();
-  for (const name of names) {
-    // バリアンツIDごとのデータ
-    const componentIdMap: ComponentIdMap | undefined = data.get(name);
-    if (!componentIdMap) continue;
+  const newStack = material.column.clone();
+  const newSubHeading = material.heading.clone();
+  newStack.appendChild(newSubHeading);
+  newSubHeading.visible = true;
+  material.stack = newStack;
 
-    // [2] 配置先：セクション
-    const sectionLayout: FrameNode = material.column.clone(); // hidden
-    setLayout(sectionLayout, { heading: material.heading.clone(), text: name });
-    const sectionInnerLayout: FrameNode = material.row.clone();
-    setLayout(sectionInnerLayout, { parent: sectionLayout, visible: true });
+  // [1] データからキーを取得し、反復処理
+  const nameKeys: string[] = [...data.keys()].sort(compareWordOrder).reverse();
+  for (const name of nameKeys) {
+    // データ取得 ['Button', [ ['ID', V], ['ID', V], ... ]], ...
+    const componentMap = data.get(name);
+    if (!componentMap) continue;
 
-    // バリアンツID毎に繰り返し
-    for (const componentId of componentIdMap.keys()) {
-      const variant: BaseNode | null = figma.getNodeById(componentId);
-      if (!variant) continue;
-      const contentMap: ContentMap | undefined = componentIdMap.get(componentId);
+    // 複製処理：セクション＋H2
+    const section: FrameNode = material.section.clone();
+    const sectionInner = material.row.clone();
+    setInnerText(section, { text: name });
+    section.appendChild(sectionInner);
+    sectionInner.visible = true;
+
+    // [2] データからキーを取得し、反復処理
+    for (const id of componentMap.keys()) {
+      // データ取得 ['ID', [ ['Lorem', V], ['Lorem', V], ... ]], ...
+      const contentMap = componentMap.get(id);
       if (!contentMap) continue;
-      const instanceIds: string[] = [...contentMap.values()].flatMap(value => [...value]);
-      if (!instanceIds.length) continue;
 
-      // [3] 配置先：スタック
-      const stackLayout: FrameNode = material.column.clone(); // hidden
-      if (variant.name !== name) setLayout(stackLayout, { heading: material.subHeading.clone(), text: variant.name });
+      // ノード取得
+      const component: BaseNode | null = figma.getNodeById(id);
+      if (!component) continue;
 
-      // [4] インスタンスの複製
-      instanceIds.forEach(id => {
-        const node: BaseNode | null = figma.getNodeById(id);
-        if (node && node.type === 'INSTANCE') {
-          const unitLayout = material.column.clone();
-          const clone = node.clone();
+      // 複製処理：サブセクション＋H3
+      const stack: FrameNode = material.stack.clone();
+      setInnerText(stack, { text: component.name, size: 16 });
+
+      // [3] データからキーを取得し、反復処理
+      for (const content of contentMap.keys()) {
+        // データ取得 ['Lorem', [ ['ID', V], ['ID', V], ... ]], ...
+        const instanceMap = contentMap.get(content);
+        if (!instanceMap) continue;
+
+        // [4] データからキーを取得し、反復処理
+        for (const id of instanceMap.keys()) {
+          // データ取得 ['ID', [ { prop: V }, { prop: V }, ... ]], ...
+          const instanceProps = instanceMap.get(id);
+          if (!instanceProps) continue;
+
+          // ノード取得
+          const instance: BaseNode | null = figma.getNodeById(id);
+          if (!instance || instance.type !== 'INSTANCE') continue;
+
+          // 複製処理
+          const unit = material.column.clone();
+          const clone = instance.clone();
           const link = material.link.clone();
-          setToInnerText({ node: link, text: getFirstNode(node).name, link: node });
-          unitLayout.appendChild(clone);
-          unitLayout.appendChild(link);
-          stackLayout.appendChild(unitLayout);
+          setInnerText(link, { text: instanceProps.location, link: instance });
+          unit.appendChild(clone);
+          unit.appendChild(link);
+
+          // 親に格納
+          stack.appendChild(unit);
           link.visible = true;
-          unitLayout.visible = true;
+          unit.visible = true;
         }
-      });
-
-      // [3] 格納
-      sectionInnerLayout.appendChild(stackLayout);
-      stackLayout.visible = true;
+      }
+      // 親に格納
+      sectionInner.appendChild(stack);
+      stack.visible = true;
     }
-
-    // [2] 格納
-    containerLayout.appendChild(sectionLayout);
-    sectionLayout.visible = true;
+    // 親に格納
+    frame.appendChild(section);
+    section.visible = true;
   }
+  // ページに格納
+  page.appendChild(frame);
+  frame.visible = true;
 
-  // [1] 格納
-  page.appendChild(containerLayout);
-  containerLayout.visible = true;
-
-  // [0] 削除
+  // 不要なノードを削除
   for (const prop in material) {
-    if (material.hasOwnProperty(prop)) material[prop].remove();
+    if (material[prop] && typeof material[prop].remove === 'function') material[prop].remove();
   }
 }
-
-
-      // instanceDataList
-      //   .reduce(stackInstanceIdByContent, [])
-      //   .map(data => data.ids)
-      //   .flat()
-      //   .forEach(id => {
-      //     const instance = figma.getNodeById(id) as InstanceNode;
-      //     const clone = instance.clone();
-      //     stackLayout.appendChild(clone);
-      //     clone.layoutPositioning = 'AUTO';
-//
-      //     const newLink = material.link.clone();
-      //     stackLayout.appendChild(newLink);
-      //     newLink.visible = true;
-      //     setToInnerText({ node: newLink, text: getFirstNode(instance).name, link: instance });
-      //   });
-
-      // console.log('test', `${masterName} / ${component.name}`);
-
-
