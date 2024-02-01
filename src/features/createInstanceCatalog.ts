@@ -1,44 +1,62 @@
-import { MasterNameMap } from "../types";
+import { ComponentMap, VariantMap, InstanceMap, InstancePropMap, InstanceDataList } from "../types";
+import { WHITE } from "../settings";
 import { generateComponentIdSet } from "./generateSet";
-import { getWrapperNode, getMasterName, getInnerText } from "./get";
-import { cutText } from "./utilities";
+import { getWrapperNode, getBackground, getMasterName, getInnerText } from "./get";
+import { generateOverriddenProps } from "./generateOverriddenProps";
+// import { cutText } from "./utilities";
 
-interface Input {
-  instance: InstanceNode[];
-  selection: SceneNode[];
-}
-export function createInstanceCatalog(input: Input): MasterNameMap {
-  const targetIds: Set<string> = generateComponentIdSet(input.selection);
-  const map: MasterNameMap = new Map();
-  for (const instance of input.instance) {
+export function createInstanceCatalog(instances: InstanceNode[], selection: SceneNode[]): ComponentMap {
+  const componentMap: ComponentMap = new Map();
+  const targetIds: Set<BaseNodeMixin['id']> = generateComponentIdSet(selection);
+
+  for (const instance of instances) {
+    // [0] 事前処理
     if (!instance.visible) continue;
 
-    const component = instance.mainComponent;
-    if (!component || (input.selection.length && !targetIds.has(component.id))) continue;
+    const component: ComponentNode | null = instance.mainComponent;
+    if (!component || (selection.length && !targetIds.has(component.id))) continue;
 
-    const wrapper = getWrapperNode(instance);
+    const wrapper: SceneNode | null = getWrapperNode(instance);
     if (!wrapper) continue;
 
-    // キー
-    const masterName: string = getMasterName(component);
-    const content = getInnerText(instance);
-    // const content = cutText(getInnerText(instance), 50);
+    // [1] キー・バリュー
+    // Lv1: ComponentMap<'Master Name', VariantMap>
+    // Lv2: VariantMap<'ID', IntanceMap>
+    // Lv3: InstanceMap<'Content', InstancePropMap>
+    // Lv4: InstancePropMap<'Overridden', InstanceDataList>
+    // Lv5: InstanceDataList = { K: V }[]
 
-    // バリュー
-    // MaseterName, Component Id
-    // └ Component Id, Content
-    // 　└ Content, Insrance Id
-    // 　　└ Instance Id, Props
-    const componentIdMap = map.get(masterName) || new Map();
-    const contentMap = componentIdMap.get(component.id) || new Map();
-    const instanceIdMap = contentMap.get(content) || new Map();
-    const props = { location: wrapper.name };
+    // Lv1
+    const masterName: BaseNodeMixin['name'] = getMasterName(component);
+    const variantMap: VariantMap = componentMap.get(masterName) || new Map();
 
-    // セット
-    instanceIdMap.set(instance.id, props);
-    contentMap.set(content, instanceIdMap);
-    componentIdMap.set(component.id, contentMap);
-    map.set(masterName, componentIdMap);
+    // Lv2
+    const id: BaseNodeMixin['id'] = component.id;
+    const instanceMap: InstanceMap = variantMap.get(id) || new Map();
+
+    // Lv3
+    const content: string = getInnerText(instance);
+    const instancePropMap: InstancePropMap = instanceMap.get(content) || new Map();
+
+    // Lv4
+    const overridden: string = generateOverriddenProps(instance).join('\n');
+    const instaceDataList: InstanceDataList = instancePropMap.get(overridden) || [];
+
+    // Lv5
+    instaceDataList.push({
+      id: instance.id,
+      width: instance.width,
+      height: instance.height,
+      background: getBackground(instance) || [WHITE],
+      location: { name: wrapper.name, width: wrapper.width, height: wrapper.height }
+    });
+
+    // [2] データのセット
+    instancePropMap.set(overridden, instaceDataList)
+    instanceMap.set(content, instancePropMap);
+    variantMap.set(id, instanceMap);
+    componentMap.set(masterName, variantMap);
   }
-  return map;
+
+  return componentMap;
 }

@@ -1,51 +1,3 @@
-export interface ResultName {
-  page: string;
-  frame: {
-    full: string;
-    partial: string;
-  };
-}
-
-export interface NodeGroup {
-  instance: InstanceNode[];
-  selection: SceneNode[];
-}
-
-export interface MaterialNode {
-  [key: string]: FrameNode;
-}
-
-export interface CreationType {
-  [key: string]: ElementProp
-}
-export interface ElementProp {
-  name: string;
-  text?: {
-    value: string;
-    link?: SceneNode;
-  };
-  layout?: {
-    flow?: 'ROW' | 'COL' | 'WRAP';
-    gap?: number[];
-    padding?: number[];
-    // minW?: number;
-    // maxW?: number;
-  };
-  theme?: {
-    fontSize?: number;
-    fill?: ReadonlyArray<Paint>[];
-    radius?: CornerMixin['cornerRadius'];
-  };
-}
-
-export type MasterNameMap = Map<string, ComponentIdMap>;
-export type ComponentIdMap = Map<string, ContentMap>;
-export type ContentMap = Map<string, InstanceIdMap>;
-export type InstanceIdMap = Map<string, InstanceProp>;
-export interface InstanceProp {
-  location: string;
-}
-
 export type ContainerNode =
   | BooleanOperationNode
   | ComponentNode
@@ -55,3 +7,64 @@ export type ContainerNode =
   | InstanceNode
   | PageNode
   | SectionNode;
+
+export interface ResultName {
+  page: string;
+  frame: {
+    full: string;
+    partial: string;
+  };
+}
+
+export type ComponentMap = Map<string, VariantMap>; // key: マスター名
+export type VariantMap = Map<string, InstanceMap>; // key: コンポーネントID
+export type InstanceMap = Map<string, InstancePropMap>; // key: コンテンツ
+export type InstancePropMap = Map<string, InstanceDataList>; // key: 上書き属性値
+export type InstanceDataList = InstanceData[];
+export interface InstanceData {
+  id: BaseNodeMixin['id'];
+  width: DimensionAndPositionMixin['width'];
+  height: DimensionAndPositionMixin['height'];
+  background: MinimalFillsMixin['fills'];
+  location: {
+    name: BaseNodeMixin['name'];
+    width: DimensionAndPositionMixin['width'];
+    height: DimensionAndPositionMixin['height'];
+  }
+}
+
+export interface CommonProp {
+  parent?: ContainerNode | PageNode;
+  name?: BaseNodeMixin['name'];
+  visible?: SceneNodeMixin['visible'];
+}
+
+export interface LayoutProp {
+  flow?: 'ROW' | 'COL' | 'WRAP';
+  align?: 'CENTER';
+  gap?: number[];
+  padding?: number[];
+  w?: number;
+  h?: number;
+  minW?: DimensionAndPositionMixin['minWidth'];
+}
+
+export interface ThemeProp {
+  radius?: CornerMixin['cornerRadius'];
+  fills?: MinimalFillsMixin['fills'];
+  effect?: DropShadowEffect;
+}
+
+export interface FrameProp extends CommonProp {
+  children?: (FrameNode | TextNode | InstanceNode)[];
+  layout?: LayoutProp;
+  theme?: ThemeProp;
+}
+
+export interface TextProp extends CommonProp {
+  content?: NonResizableTextMixin['characters'];
+  link?: HyperlinkTarget['value'];
+  font?: NonResizableTextMixin['fontName'];
+  size?: NonResizableTextMixin['fontSize'];
+  color?: MinimalFillsMixin['fills'];
+}

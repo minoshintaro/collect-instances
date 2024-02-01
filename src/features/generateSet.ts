@@ -1,21 +1,21 @@
-export function generateComponentIdSet(nodes: SceneNode[]): Set<string> {
-  const set = new Set<string>();
+export function generateComponentIdSet(input: SceneNode[]): Set<BaseNodeMixin['id']> {
+  const result = new Set<BaseNodeMixin['id']>();
 
-  let targets = nodes;
+  let targets = input;
   while (targets.length > 0) {
     let subNodes: SceneNode[] = [];
     targets.forEach(node => {
       switch (node.type) {
         case 'INSTANCE':
-          if (node.mainComponent) set.add(node.mainComponent.id);
+          if (node.mainComponent) result.add(node.mainComponent.id);
           break;
         case 'COMPONENT':
-          set.add(node.id);
+          result.add(node.id);
           break;
         case 'COMPONENT_SET':
           node
             .findChildren(child => child.type === 'COMPONENT')
-            .forEach(component => set.add(component.id));
+            .forEach(component => result.add(component.id));
           break;
         case 'BOOLEAN_OPERATION':
           break;
@@ -26,6 +26,5 @@ export function generateComponentIdSet(nodes: SceneNode[]): Set<string> {
     });
     targets = subNodes;
   }
-
-  return set;
+  return result;
 }

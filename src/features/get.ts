@@ -1,10 +1,5 @@
-import { NodeGroup } from "../types";
-
-export function getNodesOnPage(page: PageNode): NodeGroup {
-  return {
-    instance: page.findAllWithCriteria({ types: ['INSTANCE'] }),
-    selection: [...page.selection]
-  }
+export function getTime(start: Date, end: Date): string {
+  return `${end.getTime() - start.getTime()}ms`;
 }
 
 export function getWrapperNode(node: SceneNode): SceneNode | null {
@@ -15,17 +10,16 @@ export function getWrapperNode(node: SceneNode): SceneNode | null {
       case 'INSTANCE':
       case 'COMPONENT':
       case 'COMPONENT_SET':
-        return null; // 自身がネストされたインスタンスなら偽
+        return null; // => 自身がネストされたインスタンスなら偽、空を返す
       case 'FRAME':
       case 'GROUP':
-        if (!parent.visible) return null; // 親コンテナが非表示なら偽
+        if (!parent.visible) return null; // => 親コンテナが非表示なら偽、空を返す
         break; // 次ターンに進む
       case 'SECTION':
-        if (!parent.visible) return null; // 親コンテナが非表示なら偽
-        return current; // 親がセクションなら自身を返す
+        if (!parent.visible) return null; // => 親コンテナが非表示なら偽、空を返す
+        return current; // => 親がセクションなら真、自身を返す
       case 'PAGE':
-        // if (parent.name !== figma.currentPage.name) return false;
-        return current; // 親がセクションなら自身を返す
+        return current; // 親がページなら真、自身を返す
       default: break;
     }
     if ('clone' in parent) current = parent;
@@ -33,18 +27,34 @@ export function getWrapperNode(node: SceneNode): SceneNode | null {
   return null;
 }
 
-export function getMasterName(node: ComponentNode): string {
+export function getBackground(node: SceneNode): readonly Paint[] | null {
+  let current = node;
+  while (current.parent) {
+    const { parent } = current;
+    switch (parent.type) {
+      case 'FRAME':
+      case 'SECTION':
+        if (Array.isArray(parent.fills) && parent.fills.length > 0) return parent.fills; // ReadonlyArray<Paint> | figma.mixed
+        break;
+      case 'PAGE':
+        return parent.backgrounds; // backgrounds: ReadonlyArray<Paint>
+      default: break;
+    }
+    if ('clone' in parent) current = parent;
+  }
+  return null;
+}
+
+export function getMasterName(node: ComponentNode): BaseNodeMixin['name'] {
   return node.parent && node.parent.type === 'COMPONENT_SET' ? node.parent.name : node.name;
 }
 
 export function getInnerText(input: InstanceNode): string {
-  let text = '';
-  input
-    .findAllWithCriteria({ types: ['TEXT'] })
-    .forEach(node => text += node.characters + ' ');
-  return text.trim();
-}
+  const nodes = input.findAllWithCriteria({ types: ['TEXT'] });
+  const sortedNodes = nodes.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
 
-export function getTime(start: Date, end: Date): string {
-  return `${end.getTime() - start.getTime()}ms`
+  let result = '';
+  sortedNodes.forEach(node => result += node.characters + ' ');
+
+  return result.trim();
 }
