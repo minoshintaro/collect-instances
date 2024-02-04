@@ -23,8 +23,12 @@ export interface ComponentCatalog {
 }
 export type KeySet = Set<string>;
 export interface ComponentData {
-  variant: string;
-  scenes: Map<string, KeySet>;
+  name: string; // instance.mainComponent.name
+  variants: Map<string, KeySet>; //
+}
+export interface VariantData {
+
+  instances: KeySet;
 }
 export interface InstanceData {
   width: DimensionAndPositionMixin['width'];

@@ -32,12 +32,12 @@ export function createInstanceCatalog(instances: InstanceNode[], selection: Scen
 
     // コンポーネント
     const componentData = componentIdAndData.get(component.id) || {
-      variant: fullName[1],
-      scenes: new Map<string, KeySet>() // [Prop, Set<InstaneId>]
+      name: fullName[1],
+      variants: new Map<string, KeySet>() // [Prop, Set<InstaneId>]
     };
-    const instanceIdSet = componentData.scenes.get(prop) || new Set();
+    const instanceIdSet = componentData.variants.get(prop) || new Set();
     instanceIdSet.add(instance.id);
-    componentData.scenes.set(prop, instanceIdSet);
+    componentData.variants.set(prop, instanceIdSet);
     componentIdAndData.set(component.id, componentData);
 
     // インスタンス

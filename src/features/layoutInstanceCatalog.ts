@@ -51,20 +51,20 @@ export function layoutInstanceCatalog(options: { container: FrameNode; data: Com
       const componentData = data.component.get(componentId); // [ComponentId, ComponentData]
       if (!componentData) continue;
 
-      const { variant, scenes } = componentData; // variant: string, overridden: [Prop, Set<InstaneId>]
+      const { name, variants } = componentData; // variant: string, overridden: [Prop, Set<InstaneId>]
 
       // レイアウト＋見出し
       const sectionColumn = newSectionColumn.clone();
       setFrame(sectionColumn, { parent: sectionRow, visible: true });
-      if (variant !== 'Standard') {
+      if (name !== 'Standard') {
         const subHeading = newSubHeading.clone();
-        setText(subHeading, { parent: sectionColumn, content: variant, visible: true });
+        setText(subHeading, { parent: sectionColumn, content: name, visible: true });
       }
 
       // [4] 上書き属性別
-      for (const scene of scenes) {
-        const prop = scene[0];
-        const idSet = scene[1];
+      for (const variant of variants) {
+        const prop = variant[0];
+        const idSet = variant[1];
         const id = idSet.values().next().value;
         const instanceData = data.instance.get(id);
         if (!instanceData) continue;
