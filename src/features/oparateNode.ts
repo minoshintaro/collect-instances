@@ -1,22 +1,33 @@
-import { CommonProp, FrameProp, TextProp } from "../types";
+import { BaseProp, SizeProp, FrameProp, TextProp } from "../types";
 import { LAYOUT_MODE, ROBOT_R, BLACK } from "../settings";
 
-function setNode(input: SceneNode, props: CommonProp): void {
+function setNode(input: SceneNode, props: BaseProp): void {
   const { parent, name, visible } = props;
   if (parent !== undefined) parent.appendChild(input);
   if (name !== undefined) input.name = name;
   if (visible !== undefined) input.visible = visible;
 }
 
+function setSize(input: FrameNode | TextNode, props: SizeProp): void {
+  const { w, h, minW, maxW } = props;
+  if (w !== undefined && h !== undefined) {
+    input.resize(w, h);
+    // if (input.layoutMode === 'VERTICAL') input.primaryAxisSizingMode = 'AUTO';
+    // if (input.layoutMode === 'HORIZONTAL') input.counterAxisSizingMode = 'AUTO';
+  }
+  if (minW !== undefined) input.minWidth = minW;
+  if (maxW !== undefined) input.maxWidth = maxW;
+}
+
 export function setFrame(input: FrameNode, props: FrameProp): void {
-  const { children, layout, theme, parent, name, visible } = props;
+  const { children, layout, theme } = props;
 
   if (children !== undefined) {
     children.forEach(item => input.appendChild(item));
   }
 
   if (layout !== undefined) {
-    const { flow, align, gap, padding, w, h, minW } = layout;
+    const { flow, align, gap, padding } = layout;
 
     if (flow !== undefined) {
       input.layoutMode = LAYOUT_MODE[flow];
@@ -58,35 +69,29 @@ export function setFrame(input: FrameNode, props: FrameProp): void {
         }
       }
     }
-    if (w !== undefined && h !== undefined) {
-      input.resize(w, h);
-      // if (input.layoutMode === 'VERTICAL') input.primaryAxisSizingMode = 'AUTO';
-      // if (input.layoutMode === 'HORIZONTAL') input.counterAxisSizingMode = 'AUTO';
-    }
-    if (minW !== undefined) {
-      input.minWidth = minW;
-    }
   }
 
   if (theme !== undefined) {
     const { radius, fills, effect } = theme;
-
     if (radius !== undefined) input.cornerRadius = radius;
     if (fills !== undefined) input.fills = fills;
     if (effect !== undefined) input.effects = [effect];
   }
 
-  setNode(input, { parent, name, visible });
+  setSize(input, props);
+  setNode(input, props);
 }
 
 export function setText(input: TextNode, props: TextProp): void {
-  const { parent, name, visible, content, link, font, size, color } = props;
+  const { content, link, font, size, color } = props;
   if (content !== undefined) input.characters = link !== undefined ? `${content} \u{2192}` : content;
   if (link !== undefined) input.hyperlink = { type: "NODE", value: link };
   if (font !== undefined) input.fontName = font;
   if (size !== undefined) input.fontSize = size;
   if (color !== undefined) input.fills = color;
-  setNode(input, { parent, name, visible });
+
+  setSize(input, props);
+  setNode(input, props);
 }
 
 export function createFrame(props: FrameProp): FrameNode {

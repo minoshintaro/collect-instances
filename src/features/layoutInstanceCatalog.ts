@@ -1,12 +1,12 @@
-import { ComponentMap, ContainerNode } from "../types";
+import { ComponentCatalog } from "../types";
 import { ROBOT_R, ROBOT_B, LINK_COLOR, LAYOUT, THEME } from "../settings";
 import { createFrame, createText, setFrame, setText } from "./oparateNode";
 import { compareWordOrder } from "./utilities";
 
-export function layoutInstanceCatalog(options: { container: FrameNode; data: ComponentMap }): void {
+export function layoutInstanceCatalog(options: { container: FrameNode; data: ComponentCatalog }): void {
   const { container, data } = options;
 
-  // [1]
+  // [1] 複製元
   // container → ルート
   //   section ↓
   //     heading マスター名 ※Key
@@ -25,95 +25,87 @@ export function layoutInstanceCatalog(options: { container: FrameNode; data: Com
   const newSectionRow = createFrame({ name: 'row', layout: LAYOUT.sectionRow } );
   const newSectionColumn = createFrame({ name: 'col', layout: LAYOUT.sectionColumn });
   const newUnit = createFrame({ name: 'unit', layout: LAYOUT.unit });
-  const newFigure = createFrame({ name: 'figure', layout: LAYOUT.figure, theme: THEME.figure });
+  const newFigure = createFrame({ name: 'figure', minW: 360, layout: LAYOUT.figure, theme: THEME.figure });
   const newHeading = createText({ font: ROBOT_B, size: 32 });
+  const newSubHeading = createText({ font: ROBOT_B, size: 20 });
   const newCaption = createText({ font: ROBOT_R, size: 16 });
   const newLink = createText({ font: ROBOT_R, size: 16, color: [LINK_COLOR] });
 
-  // [2] マスター名順でデータを呼び出す
-  // Lv1: ComponentMap<'Master Name', VariantMap>
-  // Lv2: VariantMap<'ID', IntanceMap>
-  // Lv3: InstanceMap<'Content', InstancePropMap>
-  // Lv4: InstancePropMap<'Overridden', InstanceDataList>
-  // Lv5: InstanceDataSet<{ K: V }>
+  // [2] コンポーネント名順
+  const names: string[] = [...data.index.keys()].sort(compareWordOrder);
+  for (const name of names) {
+    // 後続タスクのキー
+    const componentIdSet = data.index.get(name); // [Name, Set<ComponentId>]
+    if (!componentIdSet) continue;
 
-  const nameKeys: string[] = [...data.keys()].sort(compareWordOrder).reverse();
-  for (const masterName of nameKeys) {
-
-    // Lv2のデータを取り出す
-    const variantMap = data.get(masterName); // VariantMap<'ID', IntanceMap>
-    if (!variantMap) continue;
-
-    // マスター名の見出しを立てる
+    // レイアウト＋見出し
     const section = newSection.clone();
     const heading = newHeading.clone();
-    setText(heading, { parent: section, content: masterName, visible: true });
+    setText(heading, { parent: section, content: name, visible: true });
     const sectionRow = newSectionRow.clone();
     setFrame(sectionRow, { parent: section, visible: true });
 
-    // [3] VariantMap<'ID', IntanceMap> からキーを取得
-    for (const id of variantMap.keys()) {
-      // ・idからコンポーネントノードを再現し、情報を取得する
-      const variant: BaseNode | null = figma.getNodeById(id);
-      if (!variant) continue;
+    // [3] コンポーネントID順
+    for (const componentId of componentIdSet) {
+      // データ
+      const componentData = data.component.get(componentId); // [ComponentId, ComponentData]
+      if (!componentData) continue;
 
-      // ・Lv3のデータを取り出す
-      const instanceMap = variantMap.get(id); // InstanceMap<'Content', InstancePropMap>
-      if (!instanceMap) continue;
+      const { variant, scenes } = componentData; // variant: string, overridden: [Prop, Set<InstaneId>]
 
-      // ・バリアントがあれば見出しを立てる
+      // レイアウト＋見出し
       const sectionColumn = newSectionColumn.clone();
       setFrame(sectionColumn, { parent: sectionRow, visible: true });
-      if (variant.name !== masterName) {
-        const subHeading = newHeading.clone();
-        setText(subHeading, { parent: sectionColumn, content: variant.name, size: 18, visible: true });
+      if (variant !== 'Standard') {
+        const subHeading = newSubHeading.clone();
+        setText(subHeading, { parent: sectionColumn, content: variant, visible: true });
       }
 
-      // [4] InstanceMap<'Content', InstancePropMap> からキーを取得し、InstancePropMapを順に呼ぶ
-      for (const content of instanceMap.keys()) {
-        // ・Lv4のデータを取り出す
+      // [4] 上書き属性別
+      for (const scene of scenes) {
+        const prop = scene[0];
+        const idSet = scene[1];
+        const id = idSet.values().next().value;
+        const instanceData = data.instance.get(id);
+        if (!instanceData) continue;
 
-        const instancePropMap = instanceMap.get(content); // InstancePropMap<'Overridden', InstanceDataList>
-        if (!instancePropMap) continue;
+        // 配置先
+        const unit = newUnit.clone();
+        setFrame(unit, { parent: sectionColumn, visible: true });
 
-        // [5] InstancePropMap<'Overridden', InstanceDataSet> からバリューを取り出す
-        for (const overridden of instancePropMap.keys()) {
-          //
-          const instanceDataList = instancePropMap.get(overridden);
-          if (!instanceDataList) continue;
-
-          //
-          const unit = newUnit.clone();
-
-          instanceDataList.forEach((data, index) => {
-            // プレビューの作成
-            if (index === 0) {
-              const instance: BaseNode | null = figma.getNodeById(data.id);
-              if (instance && instance.type === 'INSTANCE') {
-                const image = instance.clone();
-                const figure = newFigure.clone()
-                setFrame(figure, { parent: unit, children: [image], visible: true, layout: { w: data.location.width, h: data.height + 48 }, theme: { fills: data.background } });
-                if (overridden !== '') {
-                  const caption = newCaption.clone();
-                  setText(caption, { parent: unit, content: overridden, visible: true });
-                }
-              }
-            }
-            // リンクの作成
-            const link = newLink.clone();
-            setText(link, { parent: unit, content: data.location.name, link: data.id, visible: true });
+        // プレビュー
+        const instance: BaseNode | null = figma.getNodeById(id);
+        if (instance && instance.type === 'INSTANCE') {
+          const figure = newFigure.clone();
+          const image = instance.clone();
+          setFrame(figure, {
+            parent: unit,
+            children: [image],
+            w: instanceData.wrapper.width,
+            h: instanceData.height + 48,
+            theme: { fills: instanceData.background },
+            visible: true
           });
 
-          //
-          setFrame(unit, { parent: sectionColumn, visible: true });
+          if (prop !== '') {
+            const caption = newCaption.clone();
+            setText(caption, { parent: unit, content: prop, visible: true });
+          }
+        }
+
+        // リンク
+        for (const id of idSet) {
+          const instanceData = data.instance.get(id);
+          if (!instanceData) continue;
+
+          const link = newLink.clone();
+          setText(link, { parent: unit, content: instanceData.wrapper.name, link: id, visible: true });
         }
       }
     }
-
     //
     setFrame(section, { parent: container, visible: true });
   }
-
   // [1] クローン元を削除
-  [newSection, newSectionRow, newSectionColumn, newUnit, newFigure, newHeading, newCaption, newLink].forEach(node => node.remove());
+  [newSection, newSectionRow, newSectionColumn, newUnit, newFigure, newHeading, newSubHeading, newCaption, newLink].forEach(node => node.remove());
 }

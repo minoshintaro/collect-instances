@@ -1,62 +1,61 @@
-import { ComponentMap, VariantMap, InstanceMap, InstancePropMap, InstanceDataList } from "../types";
-import { WHITE } from "../settings";
+import { ComponentCatalog, KeySet, ComponentData, InstanceData } from "../types";
 import { generateComponentIdSet } from "./generateSet";
-import { getWrapperNode, getBackground, getMasterName, getInnerText } from "./get";
+import { getWrapperNode, getComponentFullName, getBackground } from "./get";
 import { generateOverriddenProps } from "./generateOverriddenProps";
-// import { cutText } from "./utilities";
 
-export function createInstanceCatalog(instances: InstanceNode[], selection: SceneNode[]): ComponentMap {
-  const componentMap: ComponentMap = new Map();
-  const targetIds: Set<BaseNodeMixin['id']> = generateComponentIdSet(selection);
+export function createInstanceCatalog(instances: InstanceNode[], selection: SceneNode[]): ComponentCatalog {
+  // [0] 格納先
+  const componentNameAndIdSet = new Map<string, KeySet>();
+  const componentIdAndData = new Map<string, ComponentData>();
+  const instanceIdAndData = new Map<string, InstanceData>();
+  const targetIds = generateComponentIdSet(selection);
 
   for (const instance of instances) {
-    // [0] 事前処理
+    // [1] 事前処理
     if (!instance.visible) continue;
-
-    const component: ComponentNode | null = instance.mainComponent;
-    if (!component || (selection.length && !targetIds.has(component.id))) continue;
 
     const wrapper: SceneNode | null = getWrapperNode(instance);
     if (!wrapper) continue;
 
-    // [1] キー・バリュー
-    // Lv1: ComponentMap<'Master Name', VariantMap>
-    // Lv2: VariantMap<'ID', IntanceMap>
-    // Lv3: InstanceMap<'Content', InstancePropMap>
-    // Lv4: InstancePropMap<'Overridden', InstanceDataList>
-    // Lv5: InstanceDataList = { K: V }[]
+    const component: ComponentNode | null = instance.mainComponent;
+    if (!component || (selection.length && !targetIds.has(component.id))) continue;
 
-    // Lv1
-    const masterName: BaseNodeMixin['name'] = getMasterName(component);
-    const variantMap: VariantMap = componentMap.get(masterName) || new Map();
+    // [2] 登録キー
+    const fullName: string[] = getComponentFullName(component);
+    const prop: string = generateOverriddenProps(instance).join('\n');
 
-    // Lv2
-    const id: BaseNodeMixin['id'] = component.id;
-    const instanceMap: InstanceMap = variantMap.get(id) || new Map();
+    // [3] 登録
+    // インデックス
+    const componentIdSet = componentNameAndIdSet.get(fullName[0]) || new Set();
+    componentIdSet.add(component.id);
+    componentNameAndIdSet.set(fullName[0], componentIdSet);
 
-    // Lv3
-    const content: string = getInnerText(instance);
-    const instancePropMap: InstancePropMap = instanceMap.get(content) || new Map();
+    // コンポーネント
+    const componentData = componentIdAndData.get(component.id) || {
+      variant: fullName[1],
+      scenes: new Map<string, KeySet>() // [Prop, Set<InstaneId>]
+    };
+    const instanceIdSet = componentData.scenes.get(prop) || new Set();
+    instanceIdSet.add(instance.id);
+    componentData.scenes.set(prop, instanceIdSet);
+    componentIdAndData.set(component.id, componentData);
 
-    // Lv4
-    const overridden: string = generateOverriddenProps(instance).join('\n');
-    const instaceDataList: InstanceDataList = instancePropMap.get(overridden) || [];
-
-    // Lv5
-    instaceDataList.push({
-      id: instance.id,
+    // インスタンス
+    const instanceData: InstanceData = {
       width: instance.width,
       height: instance.height,
-      background: getBackground(instance) || [WHITE],
-      location: { name: wrapper.name, width: wrapper.width, height: wrapper.height }
-    });
-
-    // [2] データのセット
-    instancePropMap.set(overridden, instaceDataList)
-    instanceMap.set(content, instancePropMap);
-    variantMap.set(id, instanceMap);
-    componentMap.set(masterName, variantMap);
+      background: getBackground(instance),
+      wrapper: {
+        name: wrapper.name,
+        width: instance.parent && ('width' in instance.parent) ? instance.parent.width : instance.width,
+        height: wrapper.height
+      }
+    };
+    instanceIdAndData.set(instance.id, instanceData);
   }
-
-  return componentMap;
+  return {
+    index: componentNameAndIdSet,
+    component: componentIdAndData,
+    instance: instanceIdAndData
+  };
 }

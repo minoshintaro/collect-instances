@@ -16,27 +16,38 @@ export interface ResultName {
   };
 }
 
-export type ComponentMap = Map<string, VariantMap>; // key: マスター名
-export type VariantMap = Map<string, InstanceMap>; // key: コンポーネントID
-export type InstanceMap = Map<string, InstancePropMap>; // key: コンテンツ
-export type InstancePropMap = Map<string, InstanceDataList>; // key: 上書き属性値
-export type InstanceDataList = InstanceData[];
+export interface ComponentCatalog {
+  index: Map<string, KeySet>;
+  component: Map<string, ComponentData>;
+  instance: Map<string, InstanceData>;
+}
+export type KeySet = Set<string>;
+export interface ComponentData {
+  variant: string;
+  scenes: Map<string, KeySet>;
+}
 export interface InstanceData {
-  id: BaseNodeMixin['id'];
   width: DimensionAndPositionMixin['width'];
   height: DimensionAndPositionMixin['height'];
   background: MinimalFillsMixin['fills'];
-  location: {
+  wrapper: {
     name: BaseNodeMixin['name'];
     width: DimensionAndPositionMixin['width'];
     height: DimensionAndPositionMixin['height'];
   }
 }
 
-export interface CommonProp {
+export interface BaseProp {
   parent?: ContainerNode | PageNode;
-  name?: BaseNodeMixin['name'];
-  visible?: SceneNodeMixin['visible'];
+  name?: string;
+  visible?: boolean;
+}
+
+export interface SizeProp {
+  w?: number;
+  h?: number;
+  minW?: number;
+  maxW?: number;
 }
 
 export interface LayoutProp {
@@ -44,9 +55,6 @@ export interface LayoutProp {
   align?: 'CENTER';
   gap?: number[];
   padding?: number[];
-  w?: number;
-  h?: number;
-  minW?: DimensionAndPositionMixin['minWidth'];
 }
 
 export interface ThemeProp {
@@ -55,13 +63,13 @@ export interface ThemeProp {
   effect?: DropShadowEffect;
 }
 
-export interface FrameProp extends CommonProp {
+export interface FrameProp extends BaseProp, SizeProp {
   children?: (FrameNode | TextNode | InstanceNode)[];
   layout?: LayoutProp;
   theme?: ThemeProp;
 }
 
-export interface TextProp extends CommonProp {
+export interface TextProp extends BaseProp, SizeProp {
   content?: NonResizableTextMixin['characters'];
   link?: HyperlinkTarget['value'];
   font?: NonResizableTextMixin['fontName'];

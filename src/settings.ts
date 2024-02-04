@@ -39,7 +39,7 @@ export const LAYOUT: { [key: string]: LayoutProp } = {
   sectionRow: { flow: 'ROW', gap: [48] },
   sectionColumn: { flow: 'COL', gap: [24] },
   unit: { flow: 'COL', gap: [16] },
-  figure: { flow: 'COL', align: 'CENTER', padding: [24, 0], minW: 360 }
+  figure: { flow: 'COL', align: 'CENTER', padding: [24, 0] }
 }
 export const THEME: { [key: string]: ThemeProp } = {
   figure: { radius: 8, fills: [WHITE], effect: DROP_SHADOW },

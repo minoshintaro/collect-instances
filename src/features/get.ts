@@ -22,39 +22,29 @@ export function getWrapperNode(node: SceneNode): SceneNode | null {
         return current; // 親がページなら真、自身を返す
       default: break;
     }
-    if ('clone' in parent) current = parent;
+    if ('visible' in parent) current = parent;
   }
   return null;
 }
 
-export function getBackground(node: SceneNode): readonly Paint[] | null {
+export function getComponentFullName(node: ComponentNode): string[] {
+  return node.parent && node.parent.type === 'COMPONENT_SET' ? [node.parent.name, node.name] : [node.name, 'Standard'];
+}
+
+export function getBackground(node: SceneNode): MinimalFillsMixin['fills'] {
   let current = node;
   while (current.parent) {
     const { parent } = current;
     switch (parent.type) {
       case 'FRAME':
       case 'SECTION':
-        if (Array.isArray(parent.fills) && parent.fills.length > 0) return parent.fills; // ReadonlyArray<Paint> | figma.mixed
+        if (Array.isArray(parent.fills) && parent.fills.length > 0) return parent.fills; // fills: ReadonlyArray<Paint> | figma.mixed
         break;
       case 'PAGE':
-        return parent.backgrounds; // backgrounds: ReadonlyArray<Paint>
+        return parent.backgrounds;
       default: break;
     }
-    if ('clone' in parent) current = parent;
+    if ('visible' in parent) current = parent;
   }
-  return null;
-}
-
-export function getMasterName(node: ComponentNode): BaseNodeMixin['name'] {
-  return node.parent && node.parent.type === 'COMPONENT_SET' ? node.parent.name : node.name;
-}
-
-export function getInnerText(input: InstanceNode): string {
-  const nodes = input.findAllWithCriteria({ types: ['TEXT'] });
-  const sortedNodes = nodes.sort((a, b) => a.y === b.y ? a.x - b.x : a.y - b.y);
-
-  let result = '';
-  sortedNodes.forEach(node => result += node.characters + ' ');
-
-  return result.trim();
+  return figma.currentPage.backgrounds;
 }
