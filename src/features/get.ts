@@ -1,3 +1,5 @@
+import { NAME } from "../settings";
+
 export function getTime(start: Date, end: Date): string {
   return `${end.getTime() - start.getTime()}ms`;
 }
@@ -28,7 +30,7 @@ export function getWrapperNode(node: SceneNode): SceneNode | null {
 }
 
 export function getComponentFullName(node: ComponentNode): string[] {
-  return node.parent && node.parent.type === 'COMPONENT_SET' ? [node.parent.name, node.name] : [node.name, 'Standard'];
+  return node.parent && node.parent.type === 'COMPONENT_SET' ? [node.parent.name, node.name] : [node.name, NAME.variant.standard];
 }
 
 export function getBackground(node: SceneNode): MinimalFillsMixin['fills'] {

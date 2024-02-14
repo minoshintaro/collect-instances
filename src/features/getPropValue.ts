@@ -1,225 +1,97 @@
-export function getPropValue(node: BaseNode, input: NodeChangeProperty) {
-  const value = (function() {
-    switch (node.type) {
-      case 'BOOLEAN_OPERATION': return input in node ? node[input as keyof BooleanOperationNode] : null;
-      case 'ELLIPSE': return input in node ? node[input as keyof EllipseNode] : null;
-      case 'FRAME': return input in node ? node[input as keyof FrameNode] : null;
-      case 'GROUP': return input in node ? node[input as keyof GroupNode] : null;
-      case 'INSTANCE': return input in node ? node[input as keyof InstanceNode] : null;
-      case 'LINE': return input in node ? node[input as keyof LineNode] : null;
-      case 'POLYGON': return input in node ? node[input as keyof PolygonNode] : null;
-      case 'RECTANGLE': return input in node ? node[input as keyof RectangleNode] : null;
-      case 'TEXT': return input in node ? node[input as keyof TextNode] : null;
-      case 'VECTOR': return input in node ? node[input as keyof VectorNode] : null;
-      default: return null;
-    }
-  })();
+import { convertStyleId, convertFills } from "./convert";
 
-  if (value) {
-    // if (['characters'].includes(input)) return null;
-    if (['visible', 'opacity', 'blendMode'].includes(input)) return value; // レイヤー：boolean | number | ?
-    if (['width', 'height'].includes(input)) return Math.floor(value as number * 100) / 100; // 四捨五入
-    if (['componentPropertyReferences'].includes(input)) return JSON.stringify(value); // [object, Object]を変換
-    if (input === 'fills') {
+export function getPropValue(node: SceneNode, prop: NodeChangeProperty): string | null {
+  let key: string = `${prop}`;
+  let value: string | null = null;
 
-      // fills: [{"type":"SOLID","visible":true,"opacity":1,"blendMode":"NORMAL","color":{"r":0.8256220817565918,"g":0.43378549814224243,"b":0.43378549814224243},
-    }
+  switch (prop) {
+    case 'name':
+    case 'exportSettings':
+      break;
+    case 'componentProperties':
+      if ('componentProperties' in node) {
+        value = JSON.stringify(node.componentProperties);
+      }
+      break;
+    case 'characters':
+      if ('characters' in node) {
+        key = 'content';
+        value = `\"${node.characters}\"`;
+      }
+      break;
+    case 'opacity':
+      if ('opacity' in node) {
+        value = String(Math.floor(node.opacity * 100) / 100);
+      }
+      break;
+    case 'width':
+      if ('width' in node) {
+        value = String(Math.floor(node.width * 10) / 10);
+      }
+      break;
+    case 'height':
+      if ('height' in node) {
+        value = String(Math.floor(node.height * 10) / 10);
+      }
+      break;
+    case 'fontName':
+      if ('fontName' in node) {
+        value = JSON.stringify(node.fontName);
+      }
+      break;
+    case 'fills':
+      if ('fills' in node) {
+        value = convertFills(node.fills);
+      }
+      break;
+    case 'fillStyleId':
+      if ('fillStyleId' in node) {
+        key = prop.replace('Id', '');
+        value = `\"${convertStyleId(node.fillStyleId)}\"`;
+      }
+      break;
+    case 'strokeStyleId':
+      if ('strokeStyleId' in node) {
+        key = prop.replace('Id', '');
+        value = `\"${convertStyleId(node.strokeStyleId)}\"`;
+      }
+      break;
+    case 'backgroundStyleId':
+      if ('backgroundStyleId' in node) {
+        key = prop.replace('Id', '');
+        value = `\"${convertStyleId(node.backgroundStyleId)}\"`;
+      }
+      break;
+    case 'textStyleId':
+      if ('textStyleId' in node) {
+        key = prop.replace('Id', '');
+        value = `\"${convertStyleId(node.textStyleId)}\"`;
+      }
+      break;
+    case 'effectStyleId':
+      if ('effectStyleId' in node) {
+        key = prop.replace('Id', '');
+        value = `\"${convertStyleId(node.effectStyleId)}\"`;
+      }
+      break;
+    default:
+      const checkedValue = (function() {
+        switch (node.type) {
+          case 'BOOLEAN_OPERATION': return node[prop as keyof BooleanOperationNode];
+          case 'ELLIPSE': return node[prop as keyof EllipseNode];
+          case 'FRAME': return node[prop as keyof FrameNode];
+          case 'GROUP': return node[prop as keyof GroupNode];
+          case 'INSTANCE': return node[prop as keyof InstanceNode];
+          case 'LINE': return node[prop as keyof LineNode];
+          case 'POLYGON': return node[prop as keyof PolygonNode];
+          case 'RECTANGLE': return node[prop as keyof RectangleNode];
+          case 'TEXT': return node[prop as keyof TextNode];
+          case 'VECTOR': return node[prop as keyof VectorNode];
+          default: return 'STRANGER';
+        }
+      })();
+      value = String(checkedValue);
+      break;
   }
-
-  // 保留：constraints
-
-  return value;
+  return value ? `${key}: ${value}` : null;
 }
-
-
-// NodeChangeProperty =
-
-//   | 'name'
-//   | 'parent'
-//   | 'pluginData'
-//   | 'locked'
-//   | 'layoutGrids'
-//   | 'guides'
-//   | 'exportSettings'
-//   | 'x'
-//   | 'y'
-//   | 'type'
-
-
-//   | 'width'
-//   | 'height'
-//   | 'minWidth'
-//   | 'maxWidth'
-//   | 'minHeight'
-//   | 'maxHeight'
-//   | 'topLeftRadius'
-//   | 'topRightRadius'
-//   | 'bottomLeftRadius'
-//   | 'bottomRightRadius'
-
-//   | 'constraints'
-//   | 'constrainProportions'
-//   | 'overflowDirection'
-//   | 'relativeTransform'
-
-//   | 'visible'
-//   | 'opacity'
-//   | 'blendMode'
-
-
-//   | 'fills'
-//   | 'effects'
-
-//   | 'strokes'
-//   | 'strokeWeight'
-//   | 'strokeAlign'
-//   | 'strokeCap'
-//   | 'strokeJoin'
-//   | 'strokeMiterLimit'
-//   | 'dashPattern'
-
-
-// Text
-//   | 'characters'
-//   | 'styledTextSegments'
-//   | 'autoRename'
-//   | 'fontName'
-//   | 'fontSize'
-//   | 'lineHeight'
-//   | 'leadingTrim'
-//   | 'paragraphIndent'
-//   | 'paragraphSpacing'
-//   | 'listSpacing'
-//   | 'hangingPunctuation'
-//   | 'hangingList'
-//   | 'letterSpacing'
-//   | 'textAlignHorizontal'
-//   | 'textAlignVertical'
-//   | 'textCase'
-//   | 'textDecoration'
-//   | 'textAutoResize'
-//   | 'textTruncation'
-//   | 'maxLines'
-
-
-// Ellipse
-//   | 'arcData'
-
-
-
-
-
-
-
-
-
-
-
-
-//   | 'booleanOperation'
-
-
-// DEPRECATED
-//   | 'backgrounds'
-//   | 'backgroundStyleId'
-
-
-
-// Rectangle
-//   | 'cornerRadius'
-//   | 'cornerSmoothing'
-
-
-
-
-//   | 'rotation'
-//   | 'isMask'
-//   | 'maskType'
-//   | 'clipsContent'
-
-//   | 'overlayPositionType'
-//   | 'overlayBackgroundInteraction'
-//   | 'overlayBackground'
-
-//   | 'prototypeStartNode'
-//   | 'prototypeBackgrounds'
-//   | 'expanded'
-
-//   | 'effectStyleId'
-//   | 'gridStyleId'
-//   | 'description'
-//   | 'layoutMode'
-//   | 'layoutWrap'
-
-//   | 'paddingLeft'
-//   | 'paddingTop'
-//   | 'paddingRight'
-//   | 'paddingBottom'
-//   | 'itemSpacing'
-//   | 'counterAxisSpacing'
-
-//   | 'layoutAlign'
-//   | 'counterAxisSizingMode'
-//   | 'primaryAxisSizingMode'
-//   | 'primaryAxisAlignItems'
-//   | 'counterAxisAlignItems'
-//   | 'counterAxisAlignContent'
-//   | 'layoutGrow'
-
-//   | 'layoutPositioning'
-//   | 'itemReverseZIndex'
-//   | 'hyperlink'
-//   | 'mediaData'
-
-// Frame, Rectangle
-//   | 'stokeTopWeight'
-//   | 'strokeBottomWeight'
-//   | 'strokeLeftWeight'
-//   | 'strokeRightWeight'
-
-//   | 'reactions'
-//   | 'flowStartingPoints'
-//   | 'shapeType'
-
-
-
-//   | 'codeLanguage'
-//   | 'widgetSyncedState'
-//   | 'componentPropertyDefinitions'
-//   | 'componentPropertyReferences'
-//   | 'componentProperties'
-//   | 'embedData'
-//   | 'linkUnfurlData'
-
-//   | 'authorVisible'
-//   | 'authorName'
-//   | 'code'
-
-
-// Vector
-//   | 'vectorNetwork'
-//   | 'handleMirroring'
-
-
-// FigJam
-
-// Star, Polygon
-//   | 'pointCount'
-//   | 'innerRadius'
-
-// Sticky
-//   | 'text'
-//   | 'fillStyleId'
-
-//   | 'textStyleId'
-
-// Connector
-//   | 'textBackground'
-//   | 'connectorStart'
-//   | 'connectorEnd'
-//   | 'connectorLineType'
-//   | 'connectorStartStrokeCap'
-//   | 'connectorEndStrokeCap'
-//   | 'strokeStyleId'
-
-// Shape

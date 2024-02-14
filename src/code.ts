@@ -1,5 +1,5 @@
 import { ComponentCatalog } from "./types";
-import { RESULT_NAME, ROBOT_R, ROBOT_B } from "./settings";
+import { NAME, ROBOT_R, ROBOT_B } from "./settings";
 import { createInstanceCatalog } from "./features/createInstanceCatalog";
 import { findPage } from "./features/find";
 import { generateResultContainer } from "./features/generateResultContainer";
@@ -15,7 +15,7 @@ figma.skipInvisibleInstanceChildren = true;
 figma.on('run', async () => {
   try {
     // [0] 中断の是非
-    if (figma.currentPage.name === RESULT_NAME.page) {
+    if (figma.currentPage.name === NAME.page) {
       figma.closePlugin('Not Here');
       return;
     }
@@ -30,12 +30,12 @@ figma.on('run', async () => {
 
     // [2] データの準備
     let instances: InstanceNode[] = figma.currentPage.findAllWithCriteria({ types: ['INSTANCE'] });
-    let selection: SceneNode[] = [...figma.currentPage.selection]; // selection: ReadonlyArray<SceneNode>
+    let selection: readonly SceneNode[] = figma.currentPage.selection; // selection: ReadonlyArray<SceneNode>
     let data: ComponentCatalog = createInstanceCatalog(instances, selection);
     console.log('Time:', getTime(start, new Date()), data);
 
     // [3] データの処理
-    const targetPage: PageNode = findPage(RESULT_NAME.page) || createPage(RESULT_NAME.page);
+    const targetPage: PageNode = findPage(NAME.page) || createPage(NAME.page);
     const container: FrameNode = generateResultContainer(targetPage, selection.length ? 'partial' : 'full');
     layoutInstanceCatalog({ container, data });
 

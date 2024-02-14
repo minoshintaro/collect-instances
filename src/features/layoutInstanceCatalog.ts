@@ -6,7 +6,7 @@ import { compareWordOrder } from "./utilities";
 export function layoutInstanceCatalog(options: { container: FrameNode; data: ComponentCatalog }): void {
   const { container, data } = options;
 
-  // [1] 複製元
+  // [0] 複製元
   // container → ルート
   //   section ↓
   //     heading マスター名 ※Key
@@ -31,11 +31,11 @@ export function layoutInstanceCatalog(options: { container: FrameNode; data: Com
   const newCaption = createText({ font: ROBOT_R, size: 16 });
   const newLink = createText({ font: ROBOT_R, size: 16, color: [LINK_COLOR] });
 
-  // [2] コンポーネント名順
+  // [1] インデックス：コンポーネント名順
   const names: string[] = [...data.index.keys()].sort(compareWordOrder);
   for (const name of names) {
-    // 後続タスクのキー
-    const componentIdSet = data.index.get(name); // [Name, Set<ComponentId>]
+    // Map<ComponentName, KeySet> => Set<ComponentId>
+    const componentIdSet = data.index.get(name);
     if (!componentIdSet) continue;
 
     // レイアウト＋見出し
@@ -45,13 +45,12 @@ export function layoutInstanceCatalog(options: { container: FrameNode; data: Com
     const sectionRow = newSectionRow.clone();
     setFrame(sectionRow, { parent: section, visible: true });
 
-    // [3] コンポーネントID順
+    // [3] コンポーネント：ID順
     for (const componentId of componentIdSet) {
-      // データ
-      const componentData = data.component.get(componentId); // [ComponentId, ComponentData]
+      // Map<ComponentId, ComponentData> => { name: VariantName, variants: Map<Prop, VariantData> }
+      const componentData = data.component.get(componentId);
       if (!componentData) continue;
-
-      const { name, variants } = componentData; // variant: string, overridden: [Prop, Set<InstaneId>]
+      const { name, variants } = componentData;
 
       // レイアウト＋見出し
       const sectionColumn = newSectionColumn.clone();
@@ -61,45 +60,31 @@ export function layoutInstanceCatalog(options: { container: FrameNode; data: Com
         setText(subHeading, { parent: sectionColumn, content: name, visible: true });
       }
 
-      // [4] 上書き属性別
+      // [4] バリアンツ：属性順
+      // Map<Prop, VariantData> => [Prop, VariantData] => { node: InstanceNode, ... ids: KeySet }
       for (const variant of variants) {
+        //
         const prop = variant[0];
-        const idSet = variant[1];
-        const id = idSet.values().next().value;
-        const instanceData = data.instance.get(id);
-        if (!instanceData) continue;
+        const { node, width, height, wrapper, ids } = variant[1];
 
-        // 配置先
+        // レイアウト＋プレビュー
         const unit = newUnit.clone();
         setFrame(unit, { parent: sectionColumn, visible: true });
-
-        // プレビュー
-        const instance: BaseNode | null = figma.getNodeById(id);
-        if (instance && instance.type === 'INSTANCE') {
-          const figure = newFigure.clone();
-          const image = instance.clone();
-          setFrame(figure, {
-            parent: unit,
-            children: [image],
-            w: instanceData.wrapper.width,
-            h: instanceData.height + 48,
-            theme: { fills: instanceData.background },
-            visible: true
-          });
-
-          if (prop !== '') {
-            const caption = newCaption.clone();
-            setText(caption, { parent: unit, content: prop, visible: true });
-          }
+        const figure = newFigure.clone();
+        const image = node.clone();
+        setFrame(figure, { parent: unit, children: [image], w: width, h: height + 48, theme: { fills: wrapper.fills }, visible: true });
+        if (prop !== '') {
+          const caption = newCaption.clone();
+          setText(caption, { parent: unit, content: prop, visible: true });
         }
 
         // リンク
-        for (const id of idSet) {
+        for (const id of ids) {
           const instanceData = data.instance.get(id);
           if (!instanceData) continue;
 
           const link = newLink.clone();
-          setText(link, { parent: unit, content: instanceData.wrapper.name, link: id, visible: true });
+          setText(link, { parent: unit, content: instanceData.location, link: id, visible: true });
         }
       }
     }

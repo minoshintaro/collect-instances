@@ -1,4 +1,4 @@
-import { ResultName, LayoutProp, ThemeProp } from "./types";
+import { Name, LayoutProp, ThemeProp } from "./types";
 
 export const LAYOUT_MODE: { [key: string]: AutoLayoutMixin['layoutMode'] } = {
   'COL': 'VERTICAL',
@@ -6,11 +6,14 @@ export const LAYOUT_MODE: { [key: string]: AutoLayoutMixin['layoutMode'] } = {
   'WRAP': 'HORIZONTAL'
 };
 
-export const RESULT_NAME: ResultName = {
+export const NAME: Name = {
   page: `\u{1F50D} Instance Collections`,
   frame: {
     full: 'Collections',
     partial: 'Collection'
+  },
+  variant: {
+    standard: 'Standard'
   }
 };
 
