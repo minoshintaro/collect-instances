@@ -7,19 +7,19 @@ export function layoutInstanceCatalog(options: { container: FrameNode; data: Com
   const { container, data } = options;
 
   // [0] 複製元
-  // container → ルート
-  //   section ↓
-  //     heading マスター名 ※Key
+  // container → ルート --- lv0
+  //   section ↓ --- lv1
+  //     heading マスター名
   //     section_row →
-  //       section_col ↓
-  //         heading バリアント名 ※Key
-  //         unit↓
+  //       section_col ↓ --- lv2
+  //         heading バリアント名
+  //         unit↓ ---lv3
   //           figure ↓
   //             instance.clone()
   //           caption
-  //             ・unique: layerName { prop: value }
+  //             unique: layerName { prop: value }
   //           link...
-  //         unit...
+  //         unit... --- lv3
 
   const newSection = createFrame({ name: 'section', layout: LAYOUT.section });
   const newSectionRow = createFrame({ name: 'row', layout: LAYOUT.sectionRow } );
@@ -34,11 +34,11 @@ export function layoutInstanceCatalog(options: { container: FrameNode; data: Com
   // [1] インデックス：コンポーネント名順
   const names: string[] = [...data.index.keys()].sort(compareWordOrder);
   for (const name of names) {
-    // Map<ComponentName, KeySet> => Set<ComponentId>
+    // コンポーネント名に紐づくID集 Map<ComponentName, KeySet>
     const componentIdSet = data.index.get(name);
     if (!componentIdSet) continue;
 
-    // レイアウト＋見出し
+    // [lv1] レイアウト＋見出し
     const section = newSection.clone();
     const heading = newHeading.clone();
     setText(heading, { parent: section, content: name, visible: true });
@@ -47,27 +47,29 @@ export function layoutInstanceCatalog(options: { container: FrameNode; data: Com
 
     // [3] コンポーネント：ID順
     for (const componentId of componentIdSet) {
-      // Map<ComponentId, ComponentData> => { name: VariantName, variants: Map<Prop, VariantData> }
+      // IDに紐づくコンポーネント情報 Map<ComponentId, ComponentData>
       const componentData = data.component.get(componentId);
       if (!componentData) continue;
-      const { name, variants } = componentData;
 
-      // レイアウト＋見出し
+      // [lv2] レイアウト＋見出し
       const sectionColumn = newSectionColumn.clone();
       setFrame(sectionColumn, { parent: sectionRow, visible: true });
-      if (name !== 'Standard') {
+      if (componentData.name !== 'Standard') {
         const subHeading = newSubHeading.clone();
-        setText(subHeading, { parent: sectionColumn, content: name, visible: true });
+        setText(subHeading, { parent: sectionColumn, content: componentData.name, visible: true });
       }
 
-      // [4] バリアンツ：属性順
-      // Map<Prop, VariantData> => [Prop, VariantData] => { node: InstanceNode, ... ids: KeySet }
-      for (const variant of variants) {
-        //
-        const prop = variant[0];
-        const { node, width, height, wrapper, ids } = variant[1];
+      // [4] バリアンツ：属性値順
+      for (const pattern of componentData.patterns) {
+        // 属性と展開情報のペア Map<Prop, VariantData> => [Prop, VariantData]
+        const prop = pattern[0];
+        const { id, width, height, wrapper, instanceIds } = pattern[1];
 
-        // レイアウト＋プレビュー
+        // インスタンスノードの再現
+        const node = figma.getNodeById(id);
+        if (!node || node.type !== 'INSTANCE') continue;
+
+        // [lv3] レイアウト＋プレビュー
         const unit = newUnit.clone();
         setFrame(unit, { parent: sectionColumn, visible: true });
         const figure = newFigure.clone();
@@ -79,7 +81,7 @@ export function layoutInstanceCatalog(options: { container: FrameNode; data: Com
         }
 
         // リンク
-        for (const id of ids) {
+        for (const id of instanceIds) {
           const instanceData = data.instance.get(id);
           if (!instanceData) continue;
 

@@ -8,7 +8,6 @@ export type ContainerNode =
   | PageNode
   | SectionNode;
 
-
 export interface Name {
   page: string,
   frame: {
@@ -28,17 +27,20 @@ export interface ResultName {
 }
 
 export interface ComponentCatalog {
-  index: Map<string, KeySet>;
-  component: Map<string, ComponentData>;
-  instance: Map<string, InstanceData>;
+  index: Map<string, KeySet>; // key: FirstName
+  component: Map<string, ComponentData>; // key: ComponentId
+  instance: Map<string, InstanceData>; // key: InstanceId
 }
+
 export type KeySet = Set<string>;
+
 export interface ComponentData {
-  name: string; // instance.mainComponent.name
-  cases: Map<string, VariantData>; //
+  name: string; // VariantName
+  patterns: Map<string, Pattern>; // key: prop
 }
-export interface VariantData {
-  node: InstanceNode;
+
+export interface Pattern {
+  id: string;
   width: DimensionAndPositionMixin['width'];
   height: DimensionAndPositionMixin['height'];
   wrapper: {
@@ -46,8 +48,9 @@ export interface VariantData {
     height: DimensionAndPositionMixin['height'];
     fills: MinimalFillsMixin['fills'];
   }
-  ids: KeySet;
+  instanceIds: KeySet;
 }
+
 export interface InstanceData {
   location: BaseNodeMixin['name'];
 }

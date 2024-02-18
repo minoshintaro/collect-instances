@@ -1,4 +1,4 @@
-import { ComponentCatalog, KeySet, ComponentData, VariantData, InstanceData } from "../types";
+import { ComponentCatalog, KeySet, ComponentData, Pattern, InstanceData } from "../types";
 import { generateComponentIdSet } from "./generateComponentIdSet";
 import { generateLayerNameAndPropsList } from "./generateLayerNameAndPropsList";
 import { getWrapperNode, getComponentFullName, getBackground } from "./get";
@@ -26,18 +26,17 @@ export function generateInstanceCatalog(instances: InstanceNode[], selection: re
     const prop: string = generateLayerNameAndPropsList(instance).join('\n');
 
     // [3] 登録
-    // [3-1] インデックス：[名前, ID群]
+    // [3-1] インデックス：[マスター名, コンポーネントID集]
     const componentIdSet = componentNameAndIdSet.get(fullName[0]) || new Set();
     componentIdSet.add(component.id);
     componentNameAndIdSet.set(fullName[0], componentIdSet);
 
-    // [3-2] コンポーネント：[ID, 展開データ] > { バリアント名, 展開事例 } > { id, データ }
+    // [3-2] コンポーネント：[コンポーネントID, 情報] > { バリアント名, [属性値, 詳細情報] }
     const componentData = componentIdAndData.get(component.id) || {
       name: fullName[1],
-      cases: new Map<string, VariantData>()
+      patterns: new Map<string, Pattern>()
     };
-    const variantData = componentData.cases.get(prop) || {
-      node: instance,
+    const pattern = componentData.patterns.get(prop) || {
       id: instance.id,
       width: instance.width,
       height: instance.height,
@@ -46,18 +45,19 @@ export function generateInstanceCatalog(instances: InstanceNode[], selection: re
         height: wrapper.height,
         fills: getBackground(instance),
       },
-      ids: new Set([instance.id])
+      instanceIds: new Set([instance.id])
     };
-    variantData.ids.add(instance.id);
-    componentData.cases.set(prop, variantData);
+    pattern.instanceIds.add(instance.id);
+    componentData.patterns.set(prop, pattern);
     componentIdAndData.set(component.id, componentData);
 
-    // インスタンス
+    // インスタンス：[インスタンスID, 情報]
     const instanceData: InstanceData = {
       location: wrapper.name
     };
     instanceIdAndData.set(instance.id, instanceData);
   }
+
   return {
     index: componentNameAndIdSet,
     component: componentIdAndData,
