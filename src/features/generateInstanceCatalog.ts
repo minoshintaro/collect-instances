@@ -1,9 +1,9 @@
 import { ComponentCatalog, KeySet, ComponentData, VariantData, InstanceData } from "../types";
 import { generateComponentIdSet } from "./generateComponentIdSet";
+import { generateLayerNameAndPropsList } from "./generateLayerNameAndPropsList";
 import { getWrapperNode, getComponentFullName, getBackground } from "./get";
-import { generateLayerProps } from "./generateLayerProps";
 
-export function createInstanceCatalog(instances: InstanceNode[], selection: readonly SceneNode[]): ComponentCatalog {
+export function generateInstanceCatalog(instances: InstanceNode[], selection: readonly SceneNode[]): ComponentCatalog {
   // [0] 格納先
   const componentNameAndIdSet = new Map<string, KeySet>();
   const componentIdAndData = new Map<string, ComponentData>();
@@ -23,20 +23,20 @@ export function createInstanceCatalog(instances: InstanceNode[], selection: read
 
     // [2] 登録キー
     const fullName: string[] = getComponentFullName(component);
-    const prop: string = generateLayerProps(instance).join('\n');
+    const prop: string = generateLayerNameAndPropsList(instance).join('\n');
 
     // [3] 登録
-    // インデックス：名前, ID群
+    // [3-1] インデックス：[名前, ID群]
     const componentIdSet = componentNameAndIdSet.get(fullName[0]) || new Set();
     componentIdSet.add(component.id);
     componentNameAndIdSet.set(fullName[0], componentIdSet);
 
-    // コンポーネント：ID, 上書き属性, データ
+    // [3-2] コンポーネント：[ID, 展開データ] > { バリアント名, 展開事例 } > { id, データ }
     const componentData = componentIdAndData.get(component.id) || {
       name: fullName[1],
-      variants: new Map<string, VariantData>()
+      cases: new Map<string, VariantData>()
     };
-    const variantData = componentData.variants.get(prop) || {
+    const variantData = componentData.cases.get(prop) || {
       node: instance,
       id: instance.id,
       width: instance.width,
@@ -49,7 +49,7 @@ export function createInstanceCatalog(instances: InstanceNode[], selection: read
       ids: new Set([instance.id])
     };
     variantData.ids.add(instance.id);
-    componentData.variants.set(prop, variantData);
+    componentData.cases.set(prop, variantData);
     componentIdAndData.set(component.id, componentData);
 
     // インスタンス

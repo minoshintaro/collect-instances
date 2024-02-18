@@ -1,6 +1,25 @@
 import { convertStyleId, convertFills } from "./convert";
 
-export function getPropValue(node: SceneNode, prop: NodeChangeProperty): string | null {
+export function getNodeValue(node: SceneNode, prop: NodeChangeProperty): string {
+  const checkedValue = (function() {
+    switch (node.type) {
+      case 'BOOLEAN_OPERATION': return node[prop as keyof BooleanOperationNode];
+      case 'ELLIPSE': return node[prop as keyof EllipseNode];
+      case 'FRAME': return node[prop as keyof FrameNode];
+      case 'GROUP': return node[prop as keyof GroupNode];
+      case 'INSTANCE': return node[prop as keyof InstanceNode];
+      case 'LINE': return node[prop as keyof LineNode];
+      case 'POLYGON': return node[prop as keyof PolygonNode];
+      case 'RECTANGLE': return node[prop as keyof RectangleNode];
+      case 'TEXT': return node[prop as keyof TextNode];
+      case 'VECTOR': return node[prop as keyof VectorNode];
+      default: return 'STRANGER';
+    }
+  })();
+  return JSON.stringify(checkedValue);
+}
+
+export function getNodeValue1(node: SceneNode, prop: NodeChangeProperty): string | null {
   let key: string = `${prop}`;
   let value: string | null = null;
 

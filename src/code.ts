@@ -1,7 +1,8 @@
 import { ComponentCatalog } from "./types";
 import { NAME, ROBOT_R, ROBOT_B } from "./settings";
-import { createInstanceCatalog } from "./features/createInstanceCatalog";
 import { findPage } from "./features/find";
+import { generateComponentIdSet } from "./features/generateComponentIdSet";
+import { generateInstanceCatalog } from "./features/generateInstanceCatalog";
 import { generateResultContainer } from "./features/generateResultContainer";
 import { getTime } from "./features/get";
 import { layoutInstanceCatalog } from "./features/layoutInstanceCatalog";
@@ -21,17 +22,21 @@ figma.on('run', async () => {
     }
 
     // [1] 事前処理
-    figma.notify('Collecting...', { timeout: 800 });
+    figma.notify('Collecting...', { timeout: 500 });
+    console.log('Time:', getTime(start, new Date()));
+
     await Promise.all([
       figma.loadFontAsync(ROBOT_R),
       figma.loadFontAsync(ROBOT_B),
-      new Promise(resolve => setTimeout(resolve, 400)) // 通知待機用
+      new Promise(resolve => setTimeout(resolve, 500)) // 通知待機用
     ]);
+    console.log('Time:', getTime(start, new Date()));
 
     // [2] データの準備
     let instances: InstanceNode[] = figma.currentPage.findAllWithCriteria({ types: ['INSTANCE'] });
-    let selection: readonly SceneNode[] = figma.currentPage.selection; // selection: ReadonlyArray<SceneNode>
-    let data: ComponentCatalog = createInstanceCatalog(instances, selection);
+    let selection: readonly SceneNode[] = figma.currentPage.selection;
+    const selectionIdSet: Set<string> = generateComponentIdSet(figma.currentPage.selection);
+    const data: ComponentCatalog = generateInstanceCatalog(instances, selection);
     console.log('Time:', getTime(start, new Date()), data);
 
     // [3] データの処理

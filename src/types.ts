@@ -35,7 +35,7 @@ export interface ComponentCatalog {
 export type KeySet = Set<string>;
 export interface ComponentData {
   name: string; // instance.mainComponent.name
-  variants: Map<string, VariantData>; //
+  cases: Map<string, VariantData>; //
 }
 export interface VariantData {
   node: InstanceNode;
