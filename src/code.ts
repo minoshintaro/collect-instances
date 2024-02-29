@@ -1,12 +1,10 @@
-import { ComponentCatalog } from "./types";
 import { NAME, ROBOT_R, ROBOT_B } from "./settings";
-import { findPage } from "./features/find";
+import { Catalog, generateCatalog } from "./features/generateCatalog";
 import { generateComponentIdSet } from "./features/generateComponentIdSet";
-import { generateInstanceCatalog } from "./features/generateInstanceCatalog";
-import { generateResultContainer } from "./features/generateResultContainer";
+import { generateResultFrame } from "./features/generateResultFrame";
 import { getTime } from "./features/get";
-import { layoutInstanceCatalog } from "./features/layoutInstanceCatalog";
-import { createPage, setFrame } from "./features/oparateNode";
+import { layoutInstances } from "./features/layoutInstances";
+import { createPage, findPage, setFrame } from "./features/oparateNode";
 
 let start = new Date();
 // let end = new Date();
@@ -15,15 +13,14 @@ figma.skipInvisibleInstanceChildren = true;
 
 figma.on('run', async () => {
   try {
-    // [0] 中断の是非
+    /** [0] 中断の是非 */
     if (figma.currentPage.name === NAME.page) {
       figma.closePlugin('Not Here');
       return;
     }
 
-    // [1] 事前処理
+    /** [1] 事前処理 */
     figma.notify('Collecting...', { timeout: 500 });
-    console.log('Time:', getTime(start, new Date()));
 
     await Promise.all([
       figma.loadFontAsync(ROBOT_R),
@@ -32,32 +29,31 @@ figma.on('run', async () => {
     ]);
     console.log('Time:', getTime(start, new Date()));
 
-    // [2] データの準備
+    /** [2] データの準備 */
     let instances: InstanceNode[] = figma.currentPage.findAllWithCriteria({ types: ['INSTANCE'] });
-    let selection: readonly SceneNode[] = figma.currentPage.selection;
-    const selectionIdSet: Set<string> = generateComponentIdSet(figma.currentPage.selection);
-    const data: ComponentCatalog = generateInstanceCatalog(instances, selection);
-    console.log('Time:', getTime(start, new Date()), data);
+    let selectionIdSet: Set<string> = generateComponentIdSet(figma.currentPage.selection);
+    let catalog: Catalog = generateCatalog(instances, selectionIdSet);
+    console.log('Time:', getTime(start, new Date()), catalog);
 
-    // [3] データの処理
-    const targetPage: PageNode = findPage(NAME.page) || createPage(NAME.page);
-    const container: FrameNode = generateResultContainer(targetPage, selection.length ? 'partial' : 'full');
-    layoutInstanceCatalog({ container, data });
+    /** [3] データの処理 */
+    const resultPage: PageNode = findPage(NAME.page) || createPage(NAME.page);
+    const resultFrame: FrameNode = generateResultFrame(resultPage, selectionIdSet.size > 0 ? 'partial' : 'full');
+    layoutInstances({ container: resultFrame, data: catalog });
 
-    // [4] 結果
-    setFrame(container, { parent: targetPage, visible: true });
-    figma.currentPage = targetPage;
-    figma.viewport.scrollAndZoomIntoView([container]);
+    /** [4] 結果 */
+    setFrame(resultFrame, { parent: resultPage, visible: true });
+    figma.currentPage = resultPage;
+    figma.viewport.scrollAndZoomIntoView([resultFrame]);
 
-    // 事後処理
-    const count = data.component.size;
-    data.index.clear();
-    data.component.clear();
-    data.instance.clear();
+    const count = catalog.example.size;
     instances = [];
-    selection = [];
+    selectionIdSet.clear();
+    catalog.components.clear();
+    catalog.usages.clear();
+    catalog.example.clear();
+    catalog.links.clear();
 
-    // 終了
+    /** [5] 終了 */
     figma.closePlugin(`Collected ${count} instances`);
     console.log('Finish Time:', getTime(start, new Date()));
   } catch (error) {

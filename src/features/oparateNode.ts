@@ -10,11 +10,7 @@ function setNode(input: SceneNode, props: BaseProp): void {
 
 function setSize(input: FrameNode | TextNode, props: SizeProp): void {
   const { w, h, minW, maxW } = props;
-  if (w !== undefined && h !== undefined) {
-    input.resize(w, h);
-    // if (input.layoutMode === 'VERTICAL') input.primaryAxisSizingMode = 'AUTO';
-    // if (input.layoutMode === 'HORIZONTAL') input.counterAxisSizingMode = 'AUTO';
-  }
+  if (w !== undefined && h !== undefined) input.resize(w, h);
   if (minW !== undefined) input.minWidth = minW;
   if (maxW !== undefined) input.maxWidth = maxW;
 }
@@ -117,4 +113,8 @@ export function createPage(name: string): PageNode {
   const node = figma.createPage();
   node.name = name;
   return node;
+}
+
+export function findPage(input: string): PageNode | null {
+  return figma.root.findChild(child => child.name === input);
 }

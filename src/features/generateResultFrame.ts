@@ -30,12 +30,12 @@ import { createFrame } from "./oparateNode";
 //   return result;
 // }
 
-export function generateResultContainer(input: PageNode, option: 'partial' | 'full'): FrameNode {
-  const foundNodes: SceneNode[] = input.findChildren(node => {
+export function generateResultFrame(input: PageNode, option: 'partial' | 'full'): FrameNode {
+  const foundFrameNodes: SceneNode[] = input.findChildren(node => {
     return node.type === 'FRAME' && [NAME.frame.full, NAME.frame.partial].includes(node.name);
   });
 
-  const targetNodes = foundNodes.reduce((results: SceneNode[], node) => {
+  const targetNodes = foundFrameNodes.reduce((results: SceneNode[], node) => {
     if (option === 'full' || (option === 'partial' && node.name === NAME.frame.full)) {
       node.remove();
     } else if (option === 'partial' && node.name === NAME.frame.partial) {
@@ -44,7 +44,7 @@ export function generateResultContainer(input: PageNode, option: 'partial' | 'fu
     return results;
   }, []);
 
-  return targetNodes.length &&targetNodes[0].type === 'FRAME'
+  return targetNodes.length > 0 && targetNodes[0].type === 'FRAME'
     ? targetNodes[0]
     : createFrame({ name: NAME.frame[option], layout: LAYOUT.container });
 }
