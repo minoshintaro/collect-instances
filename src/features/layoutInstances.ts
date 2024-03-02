@@ -25,7 +25,7 @@ export function layoutInstances(options: { container: FrameNode; data: Catalog }
   const newSectionColumn = createFrame({ name: 'col', layout: LAYOUT.sectionColumn });
   const newUnit = createFrame({ name: 'unit', layout: LAYOUT.unit });
   const newFigure = createFrame({ name: 'figure', minW: 360, layout: LAYOUT.figure, theme: THEME.figure });
-  const newLinkGroup = createFrame({ name: 'links', maxW: 640, layout: LAYOUT.linkGroup });
+  const newLinkGroup = createFrame({ name: 'links', maxW: 960, layout: LAYOUT.linkGroup });
   const newHeading = createText({ font: ROBOTO_B, size: 32 });
   const newSubHeading = createText({ font: ROBOTO_B, size: 20 });
   const newCaption = createText({ font: ROBOTO_R, size: 16 });
@@ -81,10 +81,11 @@ export function layoutInstances(options: { container: FrameNode; data: Catalog }
           const { name, instances } = wrapperIdData;
 
           /** */
-          const title = newTitle.clone();
-          setText(title, { parent: unit, content: name, visible: true });
+
           const linkGroup = newLinkGroup.clone();
           setFrame(linkGroup, { parent: unit, visible: true });
+          const title = newTitle.clone();
+          setText(title, { parent: linkGroup, content: name, visible: true });
 
           /** */
           instances.forEach(instance => {

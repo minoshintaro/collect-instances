@@ -80,7 +80,7 @@ export function setFrame(input: FrameNode, props: FrameProp): void {
 
 export function setText(input: TextNode, props: TextProp): void {
   const { content, link, font, size, color } = props;
-  if (content !== undefined) input.characters = link !== undefined ? `${content} \u{2192}` : content;
+  if (content !== undefined) input.characters = link !== undefined ? `[${content}]` : content;
   if (link !== undefined) input.hyperlink = { type: "NODE", value: link };
   if (font !== undefined) input.fontName = font;
   if (size !== undefined) input.fontSize = size;

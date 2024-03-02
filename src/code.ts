@@ -47,8 +47,9 @@ figma.on('run', async () => {
 
     const count = 1;
     // const count = catalog.example.size;
-    // instances = [];
-    // selectionIdSet.clear();
+    instances = [];
+    selectionIdSet.clear();
+    catalog.index = [];
     catalog.components.clear();
 
     /** [5] 終了 */
