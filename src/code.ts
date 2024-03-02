@@ -50,9 +50,6 @@ figma.on('run', async () => {
     // instances = [];
     // selectionIdSet.clear();
     catalog.components.clear();
-    catalog.entities.clear();
-    catalog.locations.clear();
-    catalog.instances.clear();
 
     /** [5] 終了 */
     figma.closePlugin(`Collected ${count} instances`);

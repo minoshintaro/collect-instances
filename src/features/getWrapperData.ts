@@ -53,6 +53,6 @@ export function getWrapperData(input: InstanceNode): WrapperData {
     }
   }
   if (result.fills === undefined) result.fills = figma.currentPage.backgrounds;
-  console.log('test result', result.fills);
+
   return result;
 }

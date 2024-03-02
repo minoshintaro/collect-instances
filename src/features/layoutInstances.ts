@@ -1,5 +1,5 @@
 import { ROBOTO_R, ROBOTO_B, LINK_COLOR, LAYOUT, THEME } from "../settings";
-import { Catalog, ComponentIdMap, ComponentIdData, PropData, InstanceData, WrapperIdData, InstanceIdData } from "./generateCatalog";
+import { Catalog, ComponentIdMap, ComponentIdData, PropData, InstanceData, WrapperIdData } from "./generateCatalog";
 import { createFrame, createText, setFrame, setText } from "./oparateNode";
 
 /**
@@ -29,11 +29,13 @@ export function layoutInstances(options: { container: FrameNode; data: Catalog }
   const newHeading = createText({ font: ROBOTO_B, size: 32 });
   const newSubHeading = createText({ font: ROBOTO_B, size: 20 });
   const newCaption = createText({ font: ROBOTO_R, size: 16 });
+  const newTitle = createText({ font: ROBOTO_B, size: 16 });
   const newLink = createText({ font: ROBOTO_R, size: 16, color: [LINK_COLOR] });
 
   /** [1] コンポーネント名 */
-  data.index.forEach(componentName => {
-    const componentIdMap: ComponentIdMap = data.components.get(componentName) || new Map();
+  for (const componentName of data.index) {
+    const componentIdMap = data.components.get(componentName);
+    if (!componentIdMap) continue;
 
     /** レイアウト＋見出し：lv1 */
     const section = newSection.clone();
@@ -42,6 +44,7 @@ export function layoutInstances(options: { container: FrameNode; data: Catalog }
     const sectionRow = newSectionRow.clone();
     setFrame(sectionRow, { parent: section, visible: true });
 
+    /** */
     for (const componentIdData of componentIdMap.values()) {
       const { name, props } = componentIdData;
 
@@ -53,12 +56,12 @@ export function layoutInstances(options: { container: FrameNode; data: Catalog }
         setText(subHeading, { parent: sectionColumn, content: name, visible: true });
       }
 
-      for (const prop of props) {
-        const propData: PropData | undefined = data.entities.get(prop);
-        if (!propData) continue;
-        const { locationIds, instanceIds, instance } = propData;
+      /** */
+      for (const propAndData of props) {
+        const prop = propAndData[0];
+        const { instance, locations } = propAndData[1];
 
-        /** ノード */
+        /** インスタンスノード */
         const node = figma.getNodeById(instance.id);
         if (!node || node.type !== 'INSTANCE') continue;
 
@@ -73,29 +76,27 @@ export function layoutInstances(options: { container: FrameNode; data: Catalog }
           setText(caption, { parent: unit, content: prop, visible: true });
         }
 
-        for (const locationId of locationIds) {
-          const wrapperIdData: WrapperIdData | undefined = data.locations.get(locationId);
-          if (!wrapperIdData) continue;
+        /** */
+        for (const wrapperIdData of locations.values()) {
+          const { name, instances } = wrapperIdData;
 
-          const { name, itemIds } = wrapperIdData;
-          const caption = newCaption.clone();
-          setText(caption, { parent: unit, content: name, visible: true });
+          /** */
+          const title = newTitle.clone();
+          setText(title, { parent: unit, content: name, visible: true });
           const linkGroup = newLinkGroup.clone();
           setFrame(linkGroup, { parent: unit, visible: true });
 
-          itemIds.forEach(id => {
-            if (instanceIds.has(id)) {
-              const link = newLink.clone();
-              setText(link, { parent: linkGroup, content: 'link', link: id, visible: true });
-            }
+          /** */
+          instances.forEach(instance => {
+            const link = newLink.clone();
+            setText(link, { parent: linkGroup, content: instance.name, link: instance.id, visible: true });
           });
         }
       }
     }
-
     setFrame(section, { parent: container, visible: true });
-  });
+  }
 
   // [1] クローン元を削除
-  [newSection, newSectionRow, newSectionColumn, newUnit, newFigure, newLinkGroup, newHeading, newSubHeading, newCaption, newLink].forEach(node => node.remove());
+  [newSection, newSectionRow, newSectionColumn, newUnit, newFigure, newLinkGroup, newHeading, newSubHeading, newCaption, newTitle, newLink].forEach(node => node.remove());
 }
