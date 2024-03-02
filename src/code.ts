@@ -1,4 +1,4 @@
-import { NAME, ROBOT_R, ROBOT_B } from "./settings";
+import { NAME, ROBOTO_R, ROBOTO_B } from "./settings";
 import { Catalog, generateCatalog } from "./features/generateCatalog";
 import { generateComponentIdSet } from "./features/generateComponentIdSet";
 import { generateResultFrame } from "./features/generateResultFrame";
@@ -23,8 +23,8 @@ figma.on('run', async () => {
     figma.notify('Collecting...', { timeout: 500 });
 
     await Promise.all([
-      figma.loadFontAsync(ROBOT_R),
-      figma.loadFontAsync(ROBOT_B),
+      figma.loadFontAsync(ROBOTO_R),
+      figma.loadFontAsync(ROBOTO_B),
       new Promise(resolve => setTimeout(resolve, 500)) // 通知待機用
     ]);
     console.log('Time:', getTime(start, new Date()));
@@ -45,13 +45,14 @@ figma.on('run', async () => {
     figma.currentPage = resultPage;
     figma.viewport.scrollAndZoomIntoView([resultFrame]);
 
-    const count = catalog.example.size;
-    instances = [];
-    selectionIdSet.clear();
+    const count = 1;
+    // const count = catalog.example.size;
+    // instances = [];
+    // selectionIdSet.clear();
     catalog.components.clear();
-    catalog.usages.clear();
-    catalog.example.clear();
-    catalog.links.clear();
+    catalog.entities.clear();
+    catalog.locations.clear();
+    catalog.instances.clear();
 
     /** [5] 終了 */
     figma.closePlugin(`Collected ${count} instances`);

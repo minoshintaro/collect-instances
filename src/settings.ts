@@ -17,8 +17,8 @@ export const NAME: Name = {
   }
 };
 
-export const ROBOT_R: FontName = { family: 'Roboto', style: 'Regular' };
-export const ROBOT_B: FontName = { family: 'Roboto', style: 'Bold' };
+export const ROBOTO_R: FontName = { family: 'Roboto', style: 'Regular' };
+export const ROBOTO_B: FontName = { family: 'Roboto', style: 'Bold' };
 
 export const LINK_COLOR: Paint = { type: 'SOLID', color: { r: 0 / 255, g: 100 / 255, b: 200 / 255 } };
 export const DARK_GRAY: Paint = { type: 'SOLID', color: { r: 77 / 255, g: 77 / 255, b: 77 / 255 } };
@@ -42,7 +42,8 @@ export const LAYOUT: { [key: string]: LayoutProp } = {
   sectionRow: { flow: 'ROW', gap: [48] },
   sectionColumn: { flow: 'COL', gap: [24] },
   unit: { flow: 'COL', gap: [16] },
-  figure: { flow: 'COL', align: 'CENTER', padding: [24, 0] }
+  figure: { flow: 'COL', align: 'CENTER', padding: [24, 0] },
+  linkGroup: { flow: 'WRAP', gap: [8] },
 }
 export const THEME: { [key: string]: ThemeProp } = {
   figure: { radius: 8, fills: [WHITE], effect: DROP_SHADOW },

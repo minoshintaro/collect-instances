@@ -1,18 +1,17 @@
 import { isFilled } from "./utilities";
 
 export interface WrapperData {
-  standalone: boolean;
-  id: string;
   name: string;
-  fills: MinimalFillsMixin['fills'];
+  id: string;
+  wrapped: boolean;
+  fills?: MinimalFillsMixin['fills'];
 }
 
 export function getWrapperData(input: InstanceNode): WrapperData {
-  const result: WrapperData = {
-    standalone: false,
-    id: input.id,
+  let result: WrapperData = {
     name: input.name,
-    fills: []
+    id: input.id,
+    wrapped: false
   };
 
   let current: PageNode | SceneNode = input;
@@ -24,7 +23,7 @@ export function getWrapperData(input: InstanceNode): WrapperData {
      * [3] 親が Page | Section => 終点
      */
     if (current.parent.type === 'FRAME') {
-      if (!result.fills && isFilled(current.parent.fills)) result.fills = current.parent.fills;
+      if (result.fills === undefined && isFilled(current.parent.fills)) result.fills = current.parent.fills;
       current = current.parent;
       continue; // 継続
     } else if (current.parent.type === 'GROUP') {
@@ -35,23 +34,25 @@ export function getWrapperData(input: InstanceNode): WrapperData {
       current = current.parent;
       continue; // 継続
     } else if (current.parent.type === 'SECTION') {
-      if (!result.fills && isFilled(current.parent.fills)) result.fills = current.parent.fills;
+      if (result.fills === undefined && isFilled(current.parent.fills)) result.fills = current.parent.fills;
       if (current.type === 'FRAME') {
         result.id = current.id;
         result.name = current.name;
       }
       break; // 終点
     } else if (current.parent.type === 'PAGE') {
+
       if (current.type === 'FRAME') {
         result.id = current.id;
         result.name = current.name;
       }
-      result.standalone = true;
+      result.wrapped = true;
       break; // 終点
     } else {
       break; // 中断
     }
   }
-
+  if (result.fills === undefined) result.fills = figma.currentPage.backgrounds;
+  console.log('test result', result.fills);
   return result;
 }

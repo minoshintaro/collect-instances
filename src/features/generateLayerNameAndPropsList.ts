@@ -19,12 +19,12 @@ export function generateLayerNameAndPropsList(input: InstanceNode): string[] {
     if (!fields) return results;
 
     // 上書き属性の一覧 → 「属性: 値」集
-    const fieldAndValueList = fields.sort().reduce((results: string[], field) => {
+    const fieldAndValueList = fields.reduce((results: string[], field) => {
       const value = getNodeValue(node, field);
-      return [...results, `${field}: ${value}`];
+      return !['name', 'exportSettings'].includes(field) ? [...results, `${field}: ${value}`] : results;
     }, []);
 
-    return [...results, `${node.name} = ${fieldAndValueList.join(', ')}`];
+    return fieldAndValueList.length > 0 ? [...results, `${node.name} = ${fieldAndValueList.join(', ')}`] : results;
   }, []);
 
   return layerNameAndPropsList;

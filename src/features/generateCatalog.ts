@@ -1,4 +1,3 @@
-import { KeySet } from "../types";
 import { generateLayerNameAndPropsList } from "./generateLayerNameAndPropsList";
 import { WrapperData, getWrapperData } from "./getWrapperData";
 import { compareName } from "./utilities";
@@ -17,42 +16,45 @@ import { compareName } from "./utilities";
  *           <p>WrapperName: <a href="instance.id">InstanceName</a>, ... </p>
  *         </stack> ...
  *
+ * # 出力手順
+ * names.forEach(name =>
+ *   componentMap.get(name) => Map<ComponentId, ComponentIdData>
+ *   componentIdMap.values() => componentIdData[]
+ *   componentIdData[].forEach({ name: VariantName, props: Set<Prop> } =>
+ *     props.forEach(prop =>
+ *       propMap.get(prop) => { locationIds: Set<WrapperId>, instanceIds: Set<InstanceId>, instance: InstanceData }
+ *       locationIds.forEach(id =>
+ *         wrapperIdMap.get(id) => { name: WrapperName, itemIds: Set<InstanceId> }
+ *         instanceIds.forEach(id =>
+ *           itemIds.has(id) => createLink
+ *
  * # instanceのグループ化
  * - mainComponent.parent?.name
  *   - mainComponent.id
  *     - overriddenProp
  *       - wrapper.id
  *         - instance.id
- *
- * # データ構造
- * - Map<ComponentName, { ComponentIdSet }>
- *   - Map<ComponentId, { VariantName, PropSet }>
- * - Map<Prop, { ExampleId, WrapperIdSet }>
- *   - Map<ExampleId, { Width, Height, Fills }>
- *   - Map<WrapperId, { WrapperName, InstanceSet }>
  */
 
 export interface Catalog {
   index: string[];
-  componentNames: Map<string, ComponentNameData>;
-  components: Map<string, ComponentIdData>;
-  usages: Map<string, PropData>;
-  example: Map<string, ExampleData>;
-  links: Map<string, LocationData>;
+  components: Map<string, ComponentIdMap>;
+  entities: Map<string, PropData>;
+  locations: Map<string, WrapperIdData>;
+  instances: Map<string, InstanceIdData>;
 }
-export type ComponentNameData = { componentIds: KeySet };
-export type ComponentIdData = { name: string, props: KeySet };
-export type PropData = { exampleId: string, locationIds: KeySet };
-export type ExampleData = { width: number, height: number, fills: MinimalFillsMixin['fills'] };
-export type LocationData = { name: string, instances: Set<InstanceData> };
-export type InstanceData = { name: string, id: string };
+export type ComponentIdMap = Map<string, ComponentIdData>;
+export type ComponentIdData = { name: string, props: Set<string> };
+export type PropData = { locationIds: Set<string>, instanceIds: Set<string>, instance: InstanceData };
+export type InstanceData = { name: string, id: string, width: number, height: number, backgrounds: MinimalFillsMixin['fills'] | undefined };
+export type WrapperIdData = { name: string, itemIds: Set<string> };
+export type InstanceIdData = { name: string };
 
 export function generateCatalog(instances: InstanceNode[], targetIds: Set<string>): Catalog {
-  const componentNameMap = new Map<string, ComponentNameData>();
-  const componentMap = new Map<string, ComponentIdData>();
+  const componentMap = new Map<string, ComponentIdMap>();
   const propMap = new Map<string, PropData>();
-  const exampleMap = new Map<string, ExampleData>();
-  const locationMap = new Map<string, LocationData>();
+  const wrapperMap = new Map<string, WrapperIdData>;
+  const instanceMap = new Map<string, InstanceIdData>;
 
   for (const instance of instances) {
     /** [1] ノードの確認 */
@@ -61,48 +63,48 @@ export function generateCatalog(instances: InstanceNode[], targetIds: Set<string
     const component: ComponentNode = instance.mainComponent;
     if (targetIds.size > 0 && !targetIds.has(component.id)) continue;
 
-    const wrapperData: WrapperData = getWrapperData(instance);
-    if (!wrapperData.standalone) continue;
+    const wrapper: WrapperData = getWrapperData(instance);
+    if (!wrapper.wrapped) continue;
 
-    /** [2] 登録データの値 */
+    /** [2] 登録データ */
     const componentSet: (ComponentSetNode | ComponentNode)[] = component.parent && component.parent.type === 'COMPONENT_SET' ? [component.parent, component] : [component];
     const componentName: string = componentSet[0].name;
     const variantName: string = componentSet.length > 1 ? componentSet[1].name : '';
-
     const prop: string = generateLayerNameAndPropsList(instance).join('\n');
 
     /** [3] 値の登録 */
-    const componentNameData = componentNameMap.get(componentName) || { componentIds: new Set<string>() };
-    componentNameData.componentIds.add(component.id);
-    componentNameMap.set(componentName, componentNameData);
+    /** [3-1] components */
+    const componentIdMap: ComponentIdMap = componentMap.get(componentName) || new Map<string, ComponentIdData>();
+    const componentIdData: ComponentIdData = componentIdMap.get(component.id) || { name: variantName, props: new Set<string>() };
+    componentIdData.props.add(prop);
+    componentIdMap.set(component.id, componentIdData);
+    componentMap.set(componentName, componentIdMap);
 
-    /** コンポーネントIDとバリアント名は一対 */
-    const componentData = componentMap.get(component.id) || { name: variantName, props: new Set<string>() };
-    componentData.props.add(prop);
-    componentMap.set(component.id, componentData);
-
-    /** 例示用は一度だけ */
-    const propData = propMap.get(prop) || { exampleId: instance.id, locationIds: new Set<string> };
-    propData.locationIds.add(wrapperData.id);
+    /** [3-2] entities */
+    const propData: PropData = propMap.get(prop) || {
+      locationIds: new Set<string>(),
+      instanceIds: new Set<string>(),
+      instance: { name: instance.name, id: instance.id, width: instance.width, height: instance.height, backgrounds: wrapper.fills }
+    };
+    propData.locationIds.add(wrapper.id);
+    propData.instanceIds.add(instance.id);
     propMap.set(prop, propData);
 
-    if (!exampleMap.has(instance.id)) {
-      const exampleData: ExampleData = { width: instance.width, height: instance.height, fills: wrapperData.fills };
-      exampleMap.set(instance.id, exampleData);
-    }
+    /** [3-3] locations */
+    const wrapperIdData: WrapperIdData = wrapperMap.get(wrapper.id) || { name: wrapper.name, itemIds: new Set<string>() };
+    wrapperIdData.itemIds.add(instance.id);
+    wrapperMap.set(wrapper.id, wrapperIdData);
 
-    /** 配置先IDと配置先名は一対 */
-    const locationData = locationMap.get(wrapperData.id) || { name: wrapperData.name, instances: new Set<InstanceData> };
-    locationData.instances.add({ name: instance.name, id: instance.id });
-    locationMap.set(wrapperData.id, locationData);
+    /** [3-4] instances */
+    const instanceIdData: InstanceIdData = instanceMap.get(instance.id) || { name: instance.name };
+    instanceMap.set(instance.id, instanceIdData);
   }
 
   return {
-    index: [...componentNameMap.keys()].sort(compareName),
-    componentNames: componentNameMap,
+    index: [...componentMap.keys()].sort(compareName),
     components: componentMap,
-    usages: propMap,
-    example: exampleMap,
-    links: locationMap
+    entities: propMap,
+    locations: wrapperMap,
+    instances: instanceMap
   };
 }

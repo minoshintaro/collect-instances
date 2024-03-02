@@ -1,5 +1,5 @@
 import { BaseProp, SizeProp, FrameProp, TextProp } from "../types";
-import { LAYOUT_MODE, ROBOT_R, BLACK } from "../settings";
+import { LAYOUT_MODE, ROBOTO_R, BLACK } from "../settings";
 
 function setNode(input: SceneNode, props: BaseProp): void {
   const { parent, name, visible } = props;
@@ -101,7 +101,7 @@ export function createFrame(props: FrameProp): FrameNode {
 
 export function createText(props: TextProp): TextNode {
   const node = figma.createText();
-  node.fontName = ROBOT_R;
+  node.fontName = ROBOTO_R;
   node.fontSize = 14;
   node.fills = [BLACK];
   node.visible = false;
