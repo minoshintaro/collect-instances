@@ -1,4 +1,4 @@
-export function generateComponentIdSet(input: readonly SceneNode[]): Set<string> {
+export function getComponentIdSet(input: readonly SceneNode[]): Set<string> {
   const idSet = new Set<string>();
 
   let targets: SceneNode[] = [...input];

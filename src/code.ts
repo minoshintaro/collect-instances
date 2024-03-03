@@ -1,8 +1,8 @@
 import { NAME, ROBOTO_R, ROBOTO_B } from "./settings";
 import { Catalog, generateCatalog } from "./features/generateCatalog";
-import { generateComponentIdSet } from "./features/generateComponentIdSet";
 import { generateResultFrame } from "./features/generateResultFrame";
 import { getTime } from "./features/get";
+import { getComponentIdSet } from "./features/getComponentIdSet";
 import { layoutInstances } from "./features/layoutInstances";
 import { createPage, findPage, setFrame } from "./features/oparateNode";
 
@@ -30,14 +30,14 @@ figma.on('run', async () => {
     console.log('Time:', getTime(start, new Date()));
 
     /** [2] データの準備 */
-    let instances: InstanceNode[] = figma.currentPage.findAllWithCriteria({ types: ['INSTANCE'] });
-    let selectionIdSet: Set<string> = generateComponentIdSet(figma.currentPage.selection);
-    let catalog: Catalog = generateCatalog(instances, selectionIdSet);
+    let allInstances: InstanceNode[] = figma.currentPage.findAllWithCriteria({ types: ['INSTANCE'] });
+    let selectedComponentIdSet: Set<string> = getComponentIdSet(figma.currentPage.selection);
+    let catalog: Catalog = generateCatalog(allInstances, selectedComponentIdSet);
     console.log('Time:', getTime(start, new Date()), catalog);
 
     /** [3] データの処理 */
     const resultPage: PageNode = findPage(NAME.page) || createPage(NAME.page);
-    const resultFrame: FrameNode = generateResultFrame(resultPage, selectionIdSet.size > 0 ? 'partial' : 'full');
+    const resultFrame: FrameNode = generateResultFrame(resultPage, selectedComponentIdSet.size > 0 ? 'partial' : 'full');
     layoutInstances({ container: resultFrame, data: catalog });
 
     /** [4] 結果 */
@@ -47,14 +47,14 @@ figma.on('run', async () => {
 
     const count = 1;
     // const count = catalog.example.size;
-    instances = [];
-    selectionIdSet.clear();
+    allInstances = [];
+    selectedComponentIdSet.clear();
     catalog.index = [];
     catalog.components.clear();
 
     /** [5] 終了 */
-    figma.closePlugin(`Collected ${count} instances`);
     console.log('Finish Time:', getTime(start, new Date()));
+    figma.closePlugin(`Collected ${count} instances`);
   } catch (error) {
     figma.closePlugin(`${error instanceof Error ? error.message : 'Error'}`);
   }

@@ -8,6 +8,11 @@ export interface WrapperData {
 }
 
 export function getWrapperData(input: InstanceNode): WrapperData {
+  /**
+   * 初期値は自身 = Page | Section 直下のインスタンス
+   * - 直上の親が Page | Section なら正、
+   * - それ以外なら
+   */
   let result: WrapperData = {
     name: input.name,
     id: input.id,

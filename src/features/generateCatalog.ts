@@ -36,10 +36,7 @@ import { compareName } from "./utilities";
  *         - instance.id
  */
 
-export interface Catalog {
-  index: string[];
-  components: Map<string, ComponentIdMap>;
-}
+export type Catalog = { index: string[]; components: Map<string, ComponentIdMap>; }
 export type ComponentIdMap = Map<string, ComponentIdData>;
 export type ComponentIdData = { name: string; props: Map<string, PropData>; };
 export type PropData = { instance: InstanceData; locations: Map<string, WrapperIdData>; };
